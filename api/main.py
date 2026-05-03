@@ -12,6 +12,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from api.core.config import get_settings
 from api.models.schemas import HealthResponse
@@ -70,6 +72,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Static Files ──
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # ── Routers ──
 app.include_router(normalize.router)
 app.include_router(keys.router)
@@ -87,3 +92,9 @@ app.include_router(webhooks.router)
 async def health_check() -> HealthResponse:
     """Lightweight health probe for uptime monitors and load balancers."""
     return HealthResponse(version=settings.APP_VERSION)
+
+
+# ── Landing Page ──
+@app.get("/")
+async def landing():
+    return FileResponse("static/index.html")

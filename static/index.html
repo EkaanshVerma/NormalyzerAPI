@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Normalyze — Financial Data API</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a09;
+    --off-white: #f4f1eb;
+    --warm-white: #faf8f3;
+    --accent: #c8502a;
+    --accent-muted: #e8d5cc;
+    --mid: #6b6760;
+    --border: rgba(10,10,9,0.10);
+    --code-bg: #13120f;
+    --code-text: #e8e4dc;
+    --green: #2d6a4f;
+    --green-bg: #d8f3dc;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-white);
+    color: var(--black);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3rem;
+    height: 60px;
+    background: rgba(244,241,235,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--accent); }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--mid);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--black); }
+
+  .nav-cta {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--black) !important;
+    background: var(--off-white);
+    border: 1px solid rgba(10,10,9,0.2);
+    padding: 7px 18px;
+    border-radius: 4px;
+    transition: background 0.2s, border-color 0.2s !important;
+  }
+
+  .nav-cta:hover {
+    background: var(--black) !important;
+    color: var(--warm-white) !important;
+    border-color: var(--black) !important;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0;
+    padding-top: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+
+  .hero-left {
+    padding-right: 4rem;
+    padding-top: 2rem;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.8rem, 4.5vw, 4rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 1.5rem;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--mid);
+    margin-bottom: 2.5rem;
+    max-width: 420px;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--black);
+    color: var(--warm-white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    border: 1px solid var(--black);
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--mid);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .btn-secondary:hover { color: var(--black); }
+
+  .hero-proof {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .proof-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .proof-number {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--black);
+  }
+
+  .proof-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--mid);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .proof-divider {
+    width: 1px;
+    height: 32px;
+    background: var(--border);
+  }
+
+  /* ── CODE PANEL ── */
+  .hero-right {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .code-panel {
+    background: var(--code-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .code-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+  }
+
+  .code-lang {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+  }
+
+  .code-body {
+    padding: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--code-text);
+    overflow-x: auto;
+  }
+
+  .code-body .k { color: #c792ea; }
+  .code-body .s { color: #c3e88d; }
+  .code-body .p { color: #89ddff; }
+  .code-body .c { color: rgba(255,255,255,0.25); font-style: italic; }
+  .code-body .n { color: #82aaff; }
+  .code-body .v { color: #f78c6c; }
+
+  .response-panel {
+    background: var(--code-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .response-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #4ade80;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .response-body {
+    padding: 16px 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--code-text);
+  }
+
+  .json-key { color: #89ddff; }
+  .json-str { color: #c3e88d; }
+  .json-num { color: #f78c6c; }
+  .json-bool { color: #c792ea; }
+  .json-label {
+    display: inline-block;
+    background: rgba(74,222,128,0.12);
+    color: #4ade80;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+
+  /* ── SECTION BASE ── */
+  section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5rem 3rem;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 1rem;
+  }
+
+  h2 em { font-style: italic; color: var(--accent); }
+
+  .section-sub {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--mid);
+    max-width: 480px;
+    margin-bottom: 3rem;
+    line-height: 1.7;
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .how-cell {
+    background: var(--warm-white);
+    padding: 2rem;
+    transition: background 0.2s;
+  }
+
+  .how-cell:hover { background: var(--off-white); }
+
+  .how-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+
+  .how-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+  }
+
+  .how-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--mid);
+    line-height: 1.6;
+  }
+
+  .how-arrow {
+    display: inline-block;
+    margin-top: 1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* ── TRANSFORM STRIP ── */
+  .transform-strip {
+    background: var(--black);
+    padding: 4rem 3rem;
+    margin: 0;
+  }
+
+  .transform-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .transform-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 1.5rem;
+  }
+
+  .transform-box-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 1rem;
+  }
+
+  .transform-raw {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 2;
+  }
+
+  .transform-raw strong {
+    display: block;
+    color: rgba(255,255,255,0.8);
+    font-weight: 400;
+  }
+
+  .transform-arrow-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .transform-arrow-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .transform-arrow-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .transform-clean {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    line-height: 2;
+  }
+
+  .transform-clean .field-key { color: #89ddff; }
+  .transform-clean .field-val { color: #c3e88d; }
+  .transform-clean .field-conf { color: #f78c6c; }
+  .transform-clean .field-path { color: #c792ea; }
+
+  /* ── FEATURES ── */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.8rem;
+    transition: border-color 0.2s, transform 0.2s;
+    cursor: default;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(10,10,9,0.25);
+    transform: translateY(-2px);
+  }
+
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent-muted);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 16px;
+  }
+
+  .feature-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--mid);
+    line-height: 1.65;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    margin-top: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    background: var(--accent-muted);
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+
+  /* ── PRICING ── */
+  .pricing-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 700px;
+  }
+
+  .pricing-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+  }
+
+  .pricing-card.featured {
+    background: var(--black);
+    border-color: var(--black);
+  }
+
+  .pricing-tier {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 0.5rem;
+  }
+
+  .pricing-card.featured .pricing-tier { color: rgba(255,255,255,0.4); }
+
+  .pricing-price {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--black);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .pricing-card.featured .pricing-price { color: var(--warm-white); }
+
+  .pricing-unit {
+    font-size: 13px;
+    color: var(--mid);
+    margin-bottom: 1.5rem;
+  }
+
+  .pricing-card.featured .pricing-unit { color: rgba(255,255,255,0.4); }
+
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 1.5rem;
+  }
+
+  .pricing-features li {
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--mid);
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pricing-card.featured .pricing-features li { color: rgba(255,255,255,0.55); }
+
+  .pricing-features li::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .pricing-cta {
+    display: block;
+    text-align: center;
+    padding: 10px 0;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .pricing-cta-outline {
+    border: 1px solid rgba(10,10,9,0.2);
+    color: var(--black);
+  }
+
+  .pricing-cta-outline:hover {
+    background: var(--black);
+    color: var(--warm-white);
+    border-color: var(--black);
+  }
+
+  .pricing-cta-solid {
+    background: var(--accent);
+    color: var(--warm-white);
+    border: 1px solid var(--accent);
+  }
+
+  .pricing-cta-solid:hover { background: #a83e1f; border-color: #a83e1f; }
+
+  /* ── CTA STRIP ── */
+  .cta-strip {
+    background: var(--off-white);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 5rem 3rem;
+    text-align: center;
+  }
+
+  .cta-inner {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .cta-strip h2 {
+    margin-bottom: 1rem;
+  }
+
+  .cta-strip .section-sub {
+    max-width: 100%;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .key-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--code-bg);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 1.5rem;
+  }
+
+  .key-preview span { color: #c3e88d; }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--black);
+    text-decoration: none;
+  }
+
+  .footer-logo span { color: var(--accent); }
+
+  .footer-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+    color: var(--mid);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--black); }
+
+  .footer-copy {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--mid);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-left > * {
+    animation: fadeUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .hero-eyebrow { animation-delay: 0.1s; }
+  h1 { animation-delay: 0.2s; }
+  .hero-sub { animation-delay: 0.3s; }
+  .hero-actions { animation-delay: 0.4s; }
+  .hero-proof { animation-delay: 0.5s; }
+
+  .hero-right {
+    animation: fadeUp 0.8s 0.3s ease forwards;
+    opacity: 0;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 0 1.5rem; }
+    nav .nav-links { display: none; }
+
+    .hero {
+      grid-template-columns: 1fr;
+      padding: 7rem 1.5rem 3rem;
+      gap: 3rem;
+      min-height: auto;
+    }
+
+    .hero-left { padding-right: 0; }
+    .how-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .pricing-wrap { grid-template-columns: 1fr; max-width: 100%; }
+    .transform-inner { grid-template-columns: 1fr; }
+    .transform-arrow-wrap { transform: rotate(90deg); }
+    section { padding: 3rem 1.5rem; }
+    footer { flex-direction: column; gap: 1.5rem; text-align: center; padding: 2rem 1.5rem; }
+    .footer-links { flex-wrap: wrap; justify-content: center; gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="nav-logo">Normalyze</a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/docs">Docs</a></li>
+    <li><a href="#get-key" class="nav-cta">Get API key</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">REST API · v1.0.0</div>
+    <h1>Raw transaction strings.<br><em>Clean structured JSON.</em></h1>
+    <p class="hero-sub">Bank exports are chaos. UPI strings, POS slop, NEFT noise. Send them to our API and get back strictly-typed, categorized, confidence-scored JSON — in milliseconds.</p>
+    <div class="hero-actions">
+      <a href="#get-key" class="btn-primary">
+        Get API key — free
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="/docs" class="btn-secondary">
+        View docs
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 11L11 2M11 2H5M11 2v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="hero-proof">
+      <div class="proof-item">
+        <span class="proof-number">500</span>
+        <span class="proof-label">Free calls</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <span class="proof-number">90%</span>
+        <span class="proof-label">Deterministic</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <span class="proof-number">&lt; 80ms</span>
+        <span class="proof-label">Median latency</span>
+      </div>
+      <div class="proof-divider"></div>
+      <div class="proof-item">
+        <span class="proof-number">v1.0.0</span>
+        <span class="proof-label">Ruleset locked</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="code-dots"><span></span><span></span><span></span></div>
+        <span class="code-lang">curl</span>
+      </div>
+      <div class="code-body"><span class="k">curl</span> -X POST https://api.normalyze.dev<span class="p">/v1/normalize</span> \<br>&nbsp;&nbsp;-H <span class="s">"x-api-key: nyz_live_••••••••"</span> \<br>&nbsp;&nbsp;-H <span class="s">"Content-Type: application/json"</span> \<br>&nbsp;&nbsp;-d <span class="s">'{"transactions": [<br>&nbsp;&nbsp;&nbsp;&nbsp;{"id": "t1", "raw": "UPI/ZOMATO/98123456/FOOD",<br>&nbsp;&nbsp;&nbsp;&nbsp; "amount": 349, "timestamp": "2024-03-15 19:42"}<br>&nbsp;&nbsp;]}'</span></div>
+    </div>
+
+    <div class="response-panel">
+      <div class="response-header">
+        <div class="status-dot"></div>
+        <span class="status-text">200 OK · 43ms</span>
+      </div>
+      <div class="response-body">
+{<br>
+&nbsp;&nbsp;<span class="json-key">"processed"</span>: <span class="json-num">1</span>,<br>
+&nbsp;&nbsp;<span class="json-key">"results"</span>: [{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"merchant"</span>: <span class="json-str">"Zomato"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"category"</span>: <span class="json-str">"Food &amp; Beverage"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"transaction_type"</span>: <span class="json-str">"DEBIT"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"channel"</span>: <span class="json-str">"UPI"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"is_reversal"</span>: <span class="json-bool">false</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"normalized_timestamp"</span>: <span class="json-str">"2024-03-15T19:42:00"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"explain"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"path"</span>: <span class="json-str">"keyword_match"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"rule"</span>: <span class="json-str">"zomato → Food &amp; Beverage"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"confidence"</span>: <span class="json-num">0.95</span> <span class="json-label">HIGH</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+&nbsp;&nbsp;}]<br>
+}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how">
+  <p class="section-label">How it works</p>
+  <h2>Send noise.<br><em>Receive signal.</em></h2>
+  <p class="section-sub">Three steps from raw bank export to structured data your pipeline can actually use.</p>
+
+  <div class="how-grid">
+    <div class="how-cell">
+      <p class="how-number">01 —</p>
+      <p class="how-title">Authenticate once</p>
+      <p class="how-desc">Generate an <code>nyz_live_</code> API key in 30 seconds. No sales call, no NDA, no waiting. 500 free transactions included — no card required.</p>
+      <span class="how-arrow">POST /v1/keys/generate →</span>
+    </div>
+    <div class="how-cell">
+      <p class="how-number">02 —</p>
+      <p class="how-title">Send your strings</p>
+      <p class="how-desc">Pass a batch of raw transaction strings — from Razorpay exports, RBI AA feeds, legacy cores, anywhere. Up to 500 per request. CSV upload also supported.</p>
+      <span class="how-arrow">POST /v1/normalize →</span>
+    </div>
+    <div class="how-cell">
+      <p class="how-number">03 —</p>
+      <p class="how-title">Receive typed JSON</p>
+      <p class="how-desc">Get back merchant name, category, channel, confidence score, reversal flags, and an explain field showing exactly which rule or model path fired.</p>
+      <span class="how-arrow">200 OK in &lt;80ms →</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRANSFORM STRIP ── -->
+<div class="transform-strip">
+  <div class="transform-inner">
+    <div class="transform-box">
+      <p class="transform-box-label">Before — raw strings</p>
+      <div class="transform-raw">
+        <strong>UPI/ZOMATO/98123456/FOOD</strong>
+        POS/BPCL PETROL/NEW DELHI
+        <strong>NEFT/SALARY/CR/ACME CORP LTD</strong>
+        REFUND/SWIGGY/REF982341/ORIG881234
+        <strong>SPLIT/AMAZON/PART1OF2/ORDER99</strong>
+      </div>
+    </div>
+
+    <div class="transform-arrow-wrap">
+      <div class="transform-arrow-icon">→</div>
+      <p class="transform-arrow-label">Pandas<br>engine +<br>Gemini</p>
+    </div>
+
+    <div class="transform-box">
+      <p class="transform-box-label">After — structured JSON</p>
+      <div class="transform-clean">
+        <span class="field-key">merchant</span>: <span class="field-val">"Zomato"</span><br>
+        <span class="field-key">category</span>: <span class="field-val">"Food &amp; Beverage"</span><br>
+        <span class="field-key">channel</span>: <span class="field-val">"UPI"</span><br>
+        <span class="field-key">is_reversal</span>: <span class="field-path">false</span><br>
+        <span class="field-key">is_partial</span>: <span class="field-path">false</span><br>
+        <span class="field-key">confidence</span>: <span class="field-conf">0.95</span><br>
+        <span class="field-key">path</span>: <span class="field-val">"keyword_match"</span><br>
+        <span class="field-key">ruleset_version</span>: <span class="field-val">"v1.0.0"</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURES ── -->
+<section id="features">
+  <p class="section-label">Features</p>
+  <h2>Everything a pipeline<br><em>actually needs.</em></h2>
+  <p class="section-sub">Built for developers who are done writing regex and ready to ship.</p>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <p class="feature-title">Confidence score on every result</p>
+      <p class="feature-desc">Know exactly which results to trust and which to route to human review. The <code>explain</code> field shows the classification path (keyword match vs. model fallback) and a confidence value per transaction — not just per batch.</p>
+      <span class="feature-tag">pipeline-ready</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <p class="feature-title">Deterministic versioning</p>
+      <p class="feature-desc">Every response carries a <code>ruleset_version</code> field. Your categorizations don't drift when we update the engine. Lock to a version and results are stable month to month — critical for credit models and bookkeeping agents.</p>
+      <span class="feature-tag">v1.0.0 locked</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">↩</div>
+      <p class="feature-title">Refund & split detection</p>
+      <p class="feature-desc">The edge case that kills most parsers. Refunds that reference the original merchant in a mangled format return <code>is_reversal: true</code>. Partial payments return <code>is_partial: true</code>. Your pipeline handles them without regex hacks.</p>
+      <span class="feature-tag">is_reversal · is_partial</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤖</div>
+      <p class="feature-title">Agent-readable schema</p>
+      <p class="feature-desc">FastAPI auto-generates an OpenAPI spec at <code>/openapi.json</code>. Every endpoint has explicit <code>operationId</code> values and machine-readable error objects. AI agents can discover, authenticate, and call this API with zero human setup.</p>
+      <span class="feature-tag">MCP-compatible</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📁</div>
+      <p class="feature-title">CSV batch upload</p>
+      <p class="feature-desc">Drop a bank statement CSV directly. Auto-detects Indian bank column formats including Narration, Description, and Particulars. Returns the same normalized JSON as the standard endpoint. Up to 500 rows per upload.</p>
+      <span class="feature-tag">POST /v1/normalize/csv</span>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🇮🇳</div>
+      <p class="feature-title">Indian transaction coverage</p>
+      <p class="feature-desc">Built specifically for Indian bank exports. UPI, NEFT, IMPS, RTGS, POS, ATM, NACH. Vendor coverage for Zomato, Swiggy, Zepto, BPCL, IRCTC, Razorpay merchants, and hundreds more — with Gemini fallback for anything else.</p>
+      <span class="feature-tag">RBI AA · Razorpay · legacy cores</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section id="pricing">
+  <p class="section-label">Pricing</p>
+  <h2>Pay for what<br><em>you actually use.</em></h2>
+  <p class="section-sub">No monthly subscription. No surprise bills. Usage resets monthly, billed at end of period via Stripe.</p>
+
+  <div class="pricing-wrap">
+    <div class="pricing-card">
+      <p class="pricing-tier">Free</p>
+      <p class="pricing-price">$0</p>
+      <p class="pricing-unit">500 transactions · no card required</p>
+      <ul class="pricing-features">
+        <li>All endpoints included</li>
+        <li>Full JSON schema</li>
+        <li>Gemini fallback enabled</li>
+        <li>Swagger UI at /docs</li>
+        <li>500 transactions total</li>
+      </ul>
+      <a href="#get-key" class="pricing-cta pricing-cta-outline">Get free key</a>
+    </div>
+
+    <div class="pricing-card featured">
+      <p class="pricing-tier">Pay as you go</p>
+      <p class="pricing-price">$0.005</p>
+      <p class="pricing-unit">per transaction · billed monthly</p>
+      <ul class="pricing-features">
+        <li>Everything in free</li>
+        <li>Unlimited volume</li>
+        <li>Priority support</li>
+        <li>Usage dashboard</li>
+        <li>1,000 calls ≈ $5/mo</li>
+      </ul>
+      <a href="#get-key" class="pricing-cta pricing-cta-solid">Start now</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<div class="cta-strip" id="get-key">
+  <div class="cta-inner">
+    <p class="section-label" style="text-align:center">Get started</p>
+    <h2>Your first 500 transactions<br><em>are on us.</em></h2>
+    <p class="section-sub" style="margin-bottom:0">No card. No NDA. No 6-month sales cycle. Enter your email and get an API key in seconds.</p>
+    <div class="cta-actions">
+      <input type="email" id="email-input" placeholder="you@company.dev" style="padding:11px 16px;border:1px solid rgba(10,10,9,0.2);border-radius:4px;font-size:14px;font-family:'DM Sans',sans-serif;background:white;width:260px;outline:none;"/>
+      <button class="btn-primary" onclick="handleSignup()" id="signup-btn">Generate key →</button>
+    </div>
+    <div class="key-preview" id="key-display" style="display:none">
+      Your key: <span id="key-value"></span> — save this, it won't be shown again
+    </div>
+    <p style="margin-top:1rem;font-size:12px;color:var(--mid)">Or hit <code style="font-family:'DM Mono',monospace;font-size:11px">POST /v1/keys/generate</code> directly with your email.</p>
+  </div>
+</div>
+
+<footer>
+  <a href="#" class="footer-logo">Normalyze</a>
+  <ul class="footer-links">
+    <li><a href="/docs">Documentation</a></li>
+    <li><a href="/docs#errors">Error codes</a></li>
+    <li><a href="/openapi.json">OpenAPI spec</a></li>
+    <li><a href="/terms">Terms</a></li>
+    <li><a href="mailto:support@normalyze.dev">Support</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 Normalyze</p>
+</footer>
+
+<script>
+async function handleSignup() {
+  const email = document.getElementById('email-input').value.trim();
+  const btn = document.getElementById('signup-btn');
+
+  if (!email || !email.includes('@')) {
+    document.getElementById('email-input').style.borderColor = '#c8502a';
+    return;
+  }
+
+  btn.textContent = 'Generating...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/v1/keys/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.api_key) {
+      document.getElementById('key-value').textContent = data.api_key;
+      document.getElementById('key-display').style.display = 'inline-flex';
+      btn.textContent = 'Key generated ✓';
+      btn.style.background = '#2d6a4f';
+      btn.style.borderColor = '#2d6a4f';
+    } else {
+      const msg = data.detail || 'Something went wrong';
+      btn.textContent = msg.includes('already exists') ? 'Key exists for this email' : 'Error — try again';
+      btn.style.background = '#c8502a';
+      btn.style.borderColor = '#c8502a';
+      btn.disabled = false;
+    }
+  } catch (e) {
+    btn.textContent = 'Error — check connection';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('email-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleSignup();
+  this.style.borderColor = '';
+});
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+</script>
+</body>
+</html>
