@@ -1,0 +1,10 @@
+# Pinned dependencies for the Financial Data Normalizer API
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pandas==2.2.3
+pydantic==2.10.4
+pydantic-settings==2.7.1
+stripe==11.4.1
+google-generativeai==0.8.5
+python-multipart==0.0.20
+supabase==2.13.0
