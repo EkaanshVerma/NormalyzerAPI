@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Error Codes — Normalyze</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a09;
+    --off-white: #f4f1eb;
+    --warm-white: #faf8f3;
+    --accent: #c8502a;
+    --mid: #6b6760;
+    --border: rgba(10,10,9,0.10);
+    --code-bg: #13120f;
+    --code-text: #e8e4dc;
+    --green: #2d6a4f;
+    --green-bg: rgba(45,106,79,0.10);
+    --yellow: #92610a;
+    --yellow-bg: rgba(146,97,10,0.10);
+    --red: #a32d2d;
+    --red-bg: rgba(163,45,45,0.10);
+    --blue: #185fa5;
+    --blue-bg: rgba(24,95,165,0.10);
+  }
+
+  html.dark {
+    --black: #f0ede6;
+    --off-white: #1a1916;
+    --warm-white: #111010;
+    --accent: #e06b3f;
+    --mid: #8a8780;
+    --border: rgba(240,237,230,0.10);
+    --green: #4ade80;
+    --green-bg: rgba(74,222,128,0.08);
+    --yellow: #fbbf24;
+    --yellow-bg: rgba(251,191,36,0.08);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.08);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.08);
+  }
+
+  html.dark nav { background: rgba(17,16,16,0.85); }
+  *, *::before, *::after { transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--warm-white);
+    color: var(--black);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 3rem;
+    height: 60px;
+    background: rgba(244,241,235,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--black);
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent); }
+
+  .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+
+  .nav-back {
+    font-size: 13px;
+    color: var(--mid);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--black); }
+
+  .theme-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--mid);
+  }
+  .theme-btn:hover { background: var(--off-white); color: var(--black); }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 100px 3rem 6rem;
+  }
+
+  .page-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .page-eyebrow::before { content: ''; display: block; width: 20px; height: 1px; background: var(--accent); }
+
+  h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--black);
+    margin-bottom: 0.5rem;
+  }
+
+  .page-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--mid);
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .intro {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--mid);
+    line-height: 1.75;
+    margin-bottom: 3rem;
+    max-width: 600px;
+  }
+
+  /* ── STATUS BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .badge-green  { background: var(--green-bg);  color: var(--green); }
+  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-red    { background: var(--red-bg);    color: var(--red); }
+  .badge-blue   { background: var(--blue-bg);   color: var(--blue); }
+
+  /* ── ERROR TABLE ── */
+  .error-group {
+    margin-bottom: 3rem;
+    scroll-margin-top: 80px;
+  }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .group-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--black);
+  }
+
+  .error-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    transition: border-color 0.2s;
+  }
+
+  html.dark .error-card { background: #1a1916; }
+  .error-card:hover { border-color: rgba(10,10,9,0.2); }
+  html.dark .error-card:hover { border-color: rgba(240,237,230,0.2); }
+
+  .error-card-header {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    cursor: pointer;
+  }
+
+  .error-code {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--black);
+  }
+
+  .error-title {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--black);
+  }
+
+  .error-body {
+    padding: 0 1.25rem 1rem;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+
+  .error-card.open .error-body { display: block; }
+  .error-card.open .error-chevron { transform: rotate(180deg); }
+
+  .error-chevron {
+    color: var(--mid);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .error-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--mid);
+    line-height: 1.7;
+    margin: 0.75rem 0 0.5rem;
+  }
+
+  .error-example {
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-top: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    color: var(--code-text);
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .error-example .k { color: #89ddff; }
+  .error-example .s { color: #c3e88d; }
+  .error-example .n { color: #f78c6c; }
+
+  .error-fix {
+    margin-top: 0.5rem;
+    font-size: 13px;
+    color: var(--mid);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.6;
+  }
+
+  .error-fix::before {
+    content: '→';
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    background: var(--off-white);
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  html.dark code { background: #1a1916; }
+
+  /* ── RESPONSE FORMAT BOX ── */
+  .format-box {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  html.dark .format-box { background: #1a1916; }
+
+  .format-box h3 {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 0.75rem;
+  }
+
+  .format-code {
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 14px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--code-text);
+    line-height: 1.7;
+  }
+
+  footer {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--black); text-decoration: none; }
+  .footer-logo span { color: var(--accent); }
+  .footer-copy { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--mid); }
+
+  @media (max-width: 600px) {
+    nav { padding: 0 1.5rem; }
+    .page { padding: 90px 1.5rem 4rem; }
+    .error-card-header { grid-template-columns: 60px 1fr auto; }
+    footer { flex-direction: column; gap: 1rem; padding: 2rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Normalyze<span>.</span></a>
+  <div class="nav-right">
+    <a href="/" class="nav-back">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11 6.5H2M2 6.5L6 2.5M2 6.5L6 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back
+    </a>
+    <a href="/docs" style="font-size:13px;color:var(--mid);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--black)'" onmouseout="this.style.color='var(--mid)'">API Docs</a>
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle dark mode" onclick="toggleTheme()">
+      <svg id="theme-icon" width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 1v1M7.5 13v1M1 7.5H0M15 7.5h-1M2.93 2.93l-.71-.71M12.78 12.78l-.71-.71M2.93 12.07l-.71.71M12.78 2.22l-.71.71M10.5 7.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="page">
+  <p class="page-eyebrow">Reference</p>
+  <h1>Error Codes</h1>
+  <p class="page-meta">All errors return JSON · Machine-readable <code>error</code> field on every response</p>
+
+  <p class="intro">Every error response from the Normalyze API returns a consistent JSON object. Click any error to expand details and see an example response and fix.</p>
+
+  <!-- Response format -->
+  <div class="format-box">
+    <h3>Error response format</h3>
+    <div class="format-code"><span style="color:#89ddff">"detail"</span>: {<br>&nbsp;&nbsp;<span style="color:#89ddff">"error"</span>: <span style="color:#c3e88d">"error_code_slug"</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"message"</span>: <span style="color:#c3e88d">"Human-readable description."</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"docs"</span>: <span style="color:#c3e88d">"https://normalyze.dev/errors"</span><br>}</div>
+  </div>
+
+  <!-- 2xx -->
+  <div class="error-group" id="2xx">
+    <div class="group-header">
+      <span class="badge badge-green">2xx</span>
+      <span class="group-title">Success</span>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">200</span>
+        <span class="error-title">OK — normalisation successful</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">The batch was processed successfully. Check <code>uncategorized_count</code> in the response — a high number may indicate your transaction strings have unusual formatting.</p>
+        <div class="error-example">{ <span class="k">"processed"</span>: <span class="n">3</span>, <span class="k">"results"</span>: [...], <span class="k">"uncategorized_count"</span>: <span class="n">0</span> }</div>
+      </div>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">201</span>
+        <span class="error-title">Created — API key generated</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">A new API key was created successfully. The raw key is returned once and cannot be retrieved again.</p>
+        <div class="error-example">{ <span class="k">"api_key"</span>: <span class="s">"nyz_live_..."</span>, <span class="k">"message"</span>: <span class="s">"Save your API key — it will not be shown again."</span> }</div>
+        <p class="error-fix">Store the key immediately in a secrets manager or environment variable.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4xx -->
+  <div class="error-group" id="4xx">
+    <div class="group-header">
+      <span class="badge badge-yellow">4xx</span>
+      <span class="group-title">Client errors</span>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">401</span>
+        <span class="error-title">Unauthorized — invalid or missing API key</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">The <code>x-api-key</code> header is missing, malformed, or the key has been revoked.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: { <span class="k">"error"</span>: <span class="s">"invalid_api_key"</span>, <span class="k">"message"</span>: <span class="s">"API key is missing, invalid, or has been revoked."</span> } }</div>
+        <p class="error-fix">Ensure you're sending the header <code>x-api-key: nyz_live_...</code> on every request. Keys starting with anything other than <code>nyz_live_</code> will always fail.</p>
+      </div>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">409</span>
+        <span class="error-title">Conflict — API key already exists for email</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">An active API key already exists for the email address you provided. One key per email is allowed on the free tier.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"An active API key already exists for user@example.com. Revoke it first."</span> }</div>
+        <p class="error-fix">Call <code>POST /v1/keys/revoke</code> with your email first, then generate a new key. Or use the existing key — check <code>GET /v1/keys/usage</code> to retrieve your prefix.</p>
+      </div>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">422</span>
+        <span class="error-title">Unprocessable Entity — validation failure</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">The request body failed Pydantic validation. Common causes: missing required fields, wrong types, empty <code>transactions</code> array, or exceeding the 500-transaction limit per batch.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: [{ <span class="k">"loc"</span>: [<span class="s">"body"</span>, <span class="s">"transactions"</span>], <span class="k">"msg"</span>: <span class="s">"List should have at least 1 item"</span>, <span class="k">"type"</span>: <span class="s">"too_short"</span> }] }</div>
+        <p class="error-fix">Check the <code>loc</code> field to identify which field failed. Ensure <code>transactions</code> is a non-empty array with at most 500 items, and each item has a non-empty <code>raw</code> string.</p>
+      </div>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">422</span>
+        <span class="error-title">Unprocessable Entity — CSV missing required column</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">The uploaded CSV is missing a <code>raw</code> column. This is the only required column — <code>id</code>, <code>amount</code>, and <code>timestamp</code> are optional.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"CSV must contain a 'raw' column."</span> }</div>
+        <p class="error-fix">Ensure your CSV has a header row with at least a <code>raw</code> column. Indian bank exports often call it <code>Narration</code> or <code>Description</code> — rename it to <code>raw</code> before uploading.</p>
+      </div>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">429</span>
+        <span class="error-title">Too Many Requests — free tier limit exceeded</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">Your free tier allowance of 500 transactions has been exhausted. This limit is lifetime, not monthly — it applies until you upgrade to a paid plan.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Free tier limit of 500 transactions exceeded (500 used). Upgrade to a paid plan to continue."</span> }</div>
+        <p class="error-fix">Upgrade via Stripe Checkout (link on the pricing page) to continue with unlimited metered usage at $0.005 per transaction.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5xx -->
+  <div class="error-group" id="5xx">
+    <div class="group-header">
+      <span class="badge badge-red">5xx</span>
+      <span class="group-title">Server errors</span>
+    </div>
+
+    <div class="error-card" onclick="toggleCard(this)">
+      <div class="error-card-header">
+        <span class="error-code">500</span>
+        <span class="error-title">Internal Server Error — processing failed</span>
+        <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="error-body">
+        <p class="error-desc">An unexpected error occurred during normalisation. This is rare and typically indicates a malformed input that bypassed validation, or a transient infrastructure issue.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Processing error: ..."</span> }</div>
+        <p class="error-fix">Retry the request once. If the error persists, isolate the problematic transaction string and contact <a href="mailto:support@normalyze.dev" style="color:var(--accent);font-family:'DM Mono',monospace;font-size:11.5px">support@normalyze.dev</a> with the full request body.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent notes -->
+  <div style="background:var(--off-white);border:1px solid var(--border);border-radius:6px;padding:1.5rem;margin-top:1rem;">
+    <p style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-bottom:0.75rem">For AI agents</p>
+    <p style="font-size:14px;font-weight:300;color:var(--black);line-height:1.7;margin-bottom:0.5rem">All error responses are machine-readable JSON objects. Recommended handling:</p>
+    <ul style="list-style:none;padding:0">
+      <li style="font-size:13px;color:var(--mid);padding:3px 0 3px 16px;position:relative"><span style="position:absolute;left:0;color:var(--accent);font-family:'DM Mono',monospace;font-size:11px">—</span><code>401</code> → check and refresh API key</li>
+      <li style="font-size:13px;color:var(--mid);padding:3px 0 3px 16px;position:relative"><span style="position:absolute;left:0;color:var(--accent);font-family:'DM Mono',monospace;font-size:11px">—</span><code>422</code> → inspect <code>detail[].loc</code> and fix input schema</li>
+      <li style="font-size:13px;color:var(--mid);padding:3px 0 3px 16px;position:relative"><span style="position:absolute;left:0;color:var(--accent);font-family:'DM Mono',monospace;font-size:11px">—</span><code>429</code> → halt and surface upgrade prompt to user</li>
+      <li style="font-size:13px;color:var(--mid);padding:3px 0 3px 16px;position:relative"><span style="position:absolute;left:0;color:var(--accent);font-family:'DM Mono',monospace;font-size:11px">—</span><code>500</code> → retry once with exponential backoff, then surface error</li>
+    </ul>
+  </div>
+
+</div>
+
+<footer>
+  <a href="/" class="footer-logo">Normalyze<span>.</span></a>
+  <p class="footer-copy">© 2026 Normalyze</p>
+</footer>
+
+<script>
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const icon = document.getElementById('theme-icon');
+  icon.innerHTML = isDark
+    ? '<path d="M12.5 9.5a5 5 0 0 1-6.5-6.5A5.5 5.5 0 1 0 12.5 9.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'
+    : '<path d="M7.5 1v1M7.5 13v1M1 7.5H0M15 7.5h-1M2.93 2.93l-.71-.71M12.78 12.78l-.71-.71M2.93 12.07l-.71.71M12.78 2.22l-.71.71M10.5 7.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>';
+}
+
+(function() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.innerHTML = '<path d="M12.5 9.5a5 5 0 0 1-6.5-6.5A5.5 5.5 0 1 0 12.5 9.5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+  }
+})();
+</script>
+</body>
+</html>
