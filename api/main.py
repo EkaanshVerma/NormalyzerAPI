@@ -99,3 +99,13 @@ async def health_check() -> HealthResponse:
 @app.get("/")
 async def landing():
     return FileResponse("static/index.html")
+
+
+@app.get("/terms")
+async def terms():
+    return FileResponse("static/terms.html")
+
+
+@app.get("/errors")
+async def errors():
+    return FileResponse("static/errors.html")
