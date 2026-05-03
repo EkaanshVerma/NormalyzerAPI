@@ -54,6 +54,10 @@ class Settings(BaseSettings):
     # requiring a paid Stripe subscription. Set via env to adjust without deploy.
     FREE_TIER_CALLS: int = 500
 
+    # Resend — transactional email for contact form submissions.
+    RESEND_API_KEY: str = ""
+    CONTACT_EMAIL: str = "ekaansh.vermagroup@gmail.com"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
