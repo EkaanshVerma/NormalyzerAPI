@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # Free tier — maximum total transactions a key can process before
     # requiring a paid Stripe subscription. Set via env to adjust without deploy.
-    FREE_TIER_CALLS: int = 500
+    FREE_TIER_CALLS: int = 10000
 
     # Resend — transactional email for contact form submissions.
     RESEND_API_KEY: str = ""
