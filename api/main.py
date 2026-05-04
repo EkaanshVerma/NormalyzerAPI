@@ -109,3 +109,8 @@ async def terms():
 @app.get("/errors")
 async def errors():
     return FileResponse("static/errors.html")
+
+
+@app.get("/documentation")
+async def documentation():
+    return FileResponse("static/documentation.html")
