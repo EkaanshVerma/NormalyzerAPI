@@ -96,6 +96,17 @@ async def normalize_single(
 
 
 @router.post(
+    "",
+    response_model=BatchTransactionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Normalize a batch of transactions (alias)",
+    description=(
+        "Alias for /v1/normalize/batch. Accepts up to 500 raw transaction "
+        "strings and returns an array of normalized results."
+    ),
+    include_in_schema=False,
+)
+@router.post(
     "/batch",
     response_model=BatchTransactionResponse,
     status_code=status.HTTP_200_OK,
