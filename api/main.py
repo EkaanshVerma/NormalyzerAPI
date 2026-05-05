@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse
 
 from api.core.config import get_settings
 from api.models.schemas import HealthResponse
-from api.routers import contact, keys, normalize, webhooks
+from api.routers import contact, demo, keys, normalize, webhooks
 
 # ── Logging ──
 logging.basicConfig(
@@ -80,6 +80,7 @@ app.include_router(normalize.router)
 app.include_router(keys.router)
 app.include_router(webhooks.router)
 app.include_router(contact.router)
+app.include_router(demo.router)
 
 
 # ── Health Check ──
