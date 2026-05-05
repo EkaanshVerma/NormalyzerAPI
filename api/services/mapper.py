@@ -32,7 +32,9 @@ RULESET_VERSION = "v1.0.0"
 KEYWORD_MAP: Dict[str, Tuple[str, str]] = {
     # Food and Beverage
     "zomato": ("Food and Beverage", "Zomato"),
+    "eternal limited": ("Food and Beverage", "Zomato"),
     "swiggy": ("Food and Beverage", "Swiggy"),
+    "bundl technologies": ("Food and Beverage", "Swiggy"),
     "dominos": ("Food and Beverage", "Domino's Pizza"),
     "domino": ("Food and Beverage", "Domino's Pizza"),
     "mcdonalds": ("Food and Beverage", "McDonald's"),
