@@ -71,7 +71,7 @@ def _send_otp_email(email: str, otp: str) -> None:
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=[{"email": email}],
-        sender={"name": "Normalyze", "email": "onboarding@normalyze.dev"},
+        sender={"name": "Normalyze", "email": "ekaansh.vermagroup@gmail.com"},
         subject="Your Normalyze verification code",
         html_content=(
             f"<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;'>"
