@@ -1040,6 +1040,265 @@
     .contact-section { grid-template-columns: 1fr; gap: 2rem; padding: 3rem 1.5rem; }
   }
 
+
+  /* ── LIVE DEMO ── */
+  .demo-section {
+    background: var(--black);
+    padding: 5rem 3rem;
+  }
+
+  .demo-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .demo-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .demo-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(200,80,42,0.8);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .demo-eyebrow::before, .demo-eyebrow::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 1px;
+    background: rgba(200,80,42,0.5);
+  }
+
+  .demo-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 400;
+    color: #f0ede6;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+  }
+
+  .demo-title em { font-style: italic; color: #e06b3f; }
+
+  .demo-sub {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(240,237,230,0.45);
+    margin-bottom: 0;
+  }
+
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .demo-input-pane, .demo-output-pane {
+    background: #13120f;
+    padding: 0;
+  }
+
+  .demo-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .demo-pane-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+  }
+
+  .demo-pane-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .demo-status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: background 0.3s;
+  }
+
+  .demo-status-dot.loading { background: #f78c6c; animation: blink 0.6s ease infinite; }
+  .demo-status-dot.done { background: #4ade80; }
+
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .demo-textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: rgba(240,237,230,0.8);
+    line-height: 1.7;
+    padding: 16px;
+    resize: none;
+    height: 200px;
+    caret-color: #c8502a;
+  }
+
+  .demo-textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+  .demo-samples {
+    padding: 10px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .demo-sample-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.06em;
+    margin-right: 2px;
+    align-self: center;
+  }
+
+  .demo-sample {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 3px;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+
+  .demo-sample:hover {
+    color: #c3e88d;
+    background: rgba(195,232,141,0.08);
+    border-color: rgba(195,232,141,0.2);
+  }
+
+  .demo-run-bar {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .demo-run-btn {
+    background: #c8502a;
+    color: #faf8f3;
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 0;
+  }
+
+  .demo-run-btn:hover:not(:disabled) { background: #a83e1f; }
+  .demo-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .demo-run-hint {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.04em;
+  }
+
+  .demo-output-body {
+    padding: 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    color: rgba(240,237,230,0.6);
+    height: 200px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .demo-output-body .json-key { color: #89ddff; }
+  .demo-output-body .json-str { color: #c3e88d; }
+  .demo-output-body .json-num { color: #f78c6c; }
+  .demo-output-body .json-bool { color: #c792ea; }
+  .demo-output-body .json-null { color: rgba(255,255,255,0.3); }
+  .demo-output-body .json-high { color: #4ade80; font-weight: 500; }
+
+  .demo-output-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+    color: rgba(255,255,255,0.15);
+  }
+
+  .demo-output-placeholder svg { opacity: 0.3; }
+
+  .demo-output-placeholder p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .demo-metrics {
+    display: flex;
+    gap: 1.5rem;
+    padding: 10px 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .demo-metric {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+  }
+
+  .demo-metric-val { color: rgba(255,255,255,0.5); }
+
+  @media (max-width: 900px) {
+    .demo-section { padding: 3rem 1.5rem; }
+    .demo-grid { grid-template-columns: 1fr; }
+    .demo-textarea, .demo-output-body { height: 150px; }
+  }
+
 </style>
 </head>
 <body>
@@ -1047,6 +1306,7 @@
 <nav>
   <a href="#" class="nav-logo">Normalyze</a>
   <ul class="nav-links">
+    <li><a href="#demo">Live demo</a></li>
     <li><a href="#how">How it works</a></li>
     <li><a href="#features">Features</a></li>
     <li><a href="#pricing">Pricing</a></li>
@@ -1163,6 +1423,72 @@
 </section>
 
 <!-- ── TRANSFORM STRIP ── -->
+
+<!-- ── LIVE DEMO ── -->
+<div class="demo-section" id="demo">
+  <div class="demo-inner">
+    <div class="demo-header">
+      <p class="demo-eyebrow">Live demo</p>
+      <h2 class="demo-title">Paste a string.<br><em>See it transform.</em></h2>
+      <p class="demo-sub">No API key needed. Try it right now.</p>
+    </div>
+
+    <div class="demo-grid">
+      <!-- INPUT -->
+      <div class="demo-input-pane">
+        <div class="demo-pane-header">
+          <span class="demo-pane-label">Raw transaction string</span>
+        </div>
+        <textarea
+          class="demo-textarea"
+          id="demo-input"
+          placeholder="Paste a raw transaction string here&#10;e.g. UPI/ZOMATO/98123456/FOOD"
+          spellcheck="false"
+        ></textarea>
+        <div class="demo-samples">
+          <span class="demo-sample-label">try →</span>
+          <button class="demo-sample" onclick="setDemo('UPI/ZOMATO/98123456/FOOD')">Zomato UPI</button>
+          <button class="demo-sample" onclick="setDemo('POS/BPCL PETROL/NEW DELHI')">BPCL Petrol</button>
+          <button class="demo-sample" onclick="setDemo('NEFT/SALARY/CR/ACME CORP LTD')">Salary NEFT</button>
+          <button class="demo-sample" onclick="setDemo('REFUND/SWIGGY/REF982341/ORIG881234')">Swiggy Refund</button>
+          <button class="demo-sample" onclick="setDemo('NACH/HDFC HOME LOAN EMI/1234567')">Home Loan EMI</button>
+          <button class="demo-sample" onclick="setDemo('UPI/Bundl Technologies Pvt Ltd/FOOD')">Bundl Tech</button>
+        </div>
+        <div class="demo-run-bar">
+          <button class="demo-run-btn" id="demo-run-btn" onclick="runDemo()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 2l7 4-7 4V2z" fill="currentColor"/></svg>
+            Run
+          </button>
+          <span class="demo-run-hint">or press Ctrl+Enter</span>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="demo-output-pane">
+        <div class="demo-pane-header">
+          <span class="demo-pane-label">Normalized JSON</span>
+          <span class="demo-pane-status">
+            <span class="demo-status-dot" id="demo-dot"></span>
+            <span id="demo-status-text">ready</span>
+          </span>
+        </div>
+        <div class="demo-output-body" id="demo-output">
+          <div class="demo-output-placeholder">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M9 10h10M9 14h7M9 18h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <p>output appears here</p>
+          </div>
+        </div>
+        <div class="demo-metrics" id="demo-metrics" style="display:none">
+          <div class="demo-metric">merchant <span class="demo-metric-val" id="dm-merchant">—</span></div>
+          <div class="demo-metric">category <span class="demo-metric-val" id="dm-category">—</span></div>
+          <div class="demo-metric">confidence <span class="demo-metric-val" id="dm-confidence">—</span></div>
+          <div class="demo-metric">path <span class="demo-metric-val" id="dm-path">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="transform-strip">
   <div class="transform-inner">
     <div class="transform-box">
@@ -1358,11 +1684,11 @@
 <footer>
   <a href="#" class="footer-logo">Normalyze</a>
   <ul class="footer-links">
-    <li><a href="/documentation">Documentation</a></li>
+    <li><a href="/docs">Documentation</a></li>
     <li><a href="/errors">Error codes</a></li>
     <li><a href="/openapi.json">OpenAPI spec</a></li>
     <li><a href="/terms">Terms</a></li>
-    <li><a href="#contact">Support</a></li>
+    <li><a href="mailto:support@normalyze.dev">Support</a></li>
   </ul>
   <p class="footer-copy">© 2026 Normalyze</p>
 </footer>
@@ -1485,6 +1811,101 @@ async function handleContact() {
     this.style.borderColor = '';
   });
 });
+
+
+function setDemo(val) {
+  document.getElementById('demo-input').value = val;
+  document.getElementById('demo-input').focus();
+}
+
+function syntaxHighlight(obj) {
+  const json = JSON.stringify(obj, null, 2);
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"\s*:?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function(match) {
+    let cls = 'json-num';
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) cls = 'json-key';
+      else cls = 'json-str';
+    } else if (/true|false/.test(match)) cls = 'json-bool';
+    else if (/null/.test(match)) cls = 'json-null';
+    return '<span class="' + cls + '">' + match + '</span>';
+  });
+}
+
+async function runDemo() {
+  const raw = document.getElementById('demo-input').value.trim();
+  if (!raw) {
+    document.getElementById('demo-input').focus();
+    return;
+  }
+
+  const btn = document.getElementById('demo-run-btn');
+  const dot = document.getElementById('demo-dot');
+  const statusText = document.getElementById('demo-status-text');
+  const output = document.getElementById('demo-output');
+  const metrics = document.getElementById('demo-metrics');
+
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 6" style="animation:spin 0.8s linear infinite"/></svg> Running...';
+  dot.className = 'demo-status-dot loading';
+  statusText.textContent = 'processing...';
+  output.innerHTML = '<div class="demo-output-placeholder"><p>normalizing...</p></div>';
+  metrics.style.display = 'none';
+
+  const t0 = Date.now();
+
+  try {
+    const res = await fetch('/v1/demo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-demo': 'true'
+      },
+      body: JSON.stringify({ transaction: raw })
+    });
+
+    const elapsed = Date.now() - t0;
+
+    if (!res.ok) {
+      const err = await res.json();
+      output.innerHTML = '<span style="color:#f87171;font-size:12px">' + JSON.stringify(err, null, 2) + '</span>';
+      dot.className = 'demo-status-dot';
+      statusText.textContent = 'error ' + res.status;
+      return;
+    }
+
+    const data = await res.json();
+    output.innerHTML = syntaxHighlight(data);
+
+    // Update metrics bar
+    const d = data.data || data;
+    document.getElementById('dm-merchant').textContent = d.clean_merchant || '—';
+    document.getElementById('dm-category').textContent = d.category || '—';
+    document.getElementById('dm-confidence').textContent = d.explain?.confidence || '—';
+    document.getElementById('dm-path').textContent = d.explain?.path || '—';
+    metrics.style.display = 'flex';
+
+    dot.className = 'demo-status-dot done';
+    statusText.textContent = elapsed + 'ms';
+
+  } catch(e) {
+    output.innerHTML = '<span style="color:#f87171;font-size:12px">Network error — try again</span>';
+    dot.className = 'demo-status-dot';
+    statusText.textContent = 'error';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 2l7 4-7 4V2z" fill="currentColor"/></svg> Run';
+  }
+}
+
+// Ctrl+Enter to run
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runDemo();
+});
+
+// Spin animation for loading
+const styleEl = document.createElement('style');
+styleEl.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(styleEl);
 
 </script>
 </body>
