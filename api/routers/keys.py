@@ -1,24 +1,32 @@
 """
-API key management router.
+API key management router with email OTP verification.
 
 Provides:
-    POST /v1/keys/generate  — SELF-SERVE: any developer signs up with email,
-                               gets a Stripe customer + API key automatically.
+    POST /v1/keys/generate  — STEP 1: Send a 6-digit OTP to the developer's email.
+    POST /v1/keys/verify    — STEP 2: Verify OTP and issue the API key.
     GET  /v1/keys           — ADMIN: list all keys (requires admin token).
     POST /v1/keys/revoke    — ADMIN: soft-revoke a key by prefix.
 """
 
+import hashlib
 import logging
 import re
+import secrets
+from datetime import datetime, timedelta, timezone
 
+import resend
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 
 from api.core.config import get_settings
 from api.core.database import (
     find_key_by_email,
+    find_pending_otp,
     insert_api_key,
+    insert_key_request,
     list_all_keys,
+    mark_otp_used,
     revoke_key_by_prefix,
 )
 from api.core.security import (
@@ -43,35 +51,91 @@ router = APIRouter(prefix="/v1/keys", tags=["Key Management"])
 _EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
+# ── OTP Helpers ──
+
+def _generate_otp() -> str:
+    """Generate a cryptographically secure 6-digit OTP."""
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def _hash_otp(otp: str) -> str:
+    """SHA-256 hash of the OTP for storage."""
+    return hashlib.sha256(otp.encode()).hexdigest()
+
+
+def _send_otp_email(email: str, otp: str) -> None:
+    """Send the 6-digit verification code via Resend."""
+    settings = get_settings()
+    resend.api_key = settings.RESEND_API_KEY
+    resend.Emails.send({
+        "from": "Normalyze <onboarding@resend.dev>",
+        "to": [email],
+        "subject": "Your Normalyze verification code",
+        "html": (
+            '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;">'
+            '<h2 style="margin-bottom:0.5rem;">Your verification code</h2>'
+            '<p style="color:#666;margin-bottom:1.5rem;">'
+            "Enter this code on the Normalyze site to generate your API key."
+            "</p>"
+            f'<div style="font-size:36px;font-weight:700;letter-spacing:8px;'
+            f'text-align:center;background:#f5f5f0;border-radius:8px;'
+            f'padding:1.5rem;margin-bottom:1.5rem;">{otp}</div>'
+            '<p style="color:#999;font-size:13px;">'
+            "This code expires in 10 minutes. If you didn't request this, "
+            "you can safely ignore this email."
+            "</p>"
+            "</div>"
+        ),
+    })
+
+
+# ── Request / Response Models ──
+
+class OTPSentResponse(BaseModel):
+    status: str = "otp_sent"
+    message: str = "Check your email for a 6-digit verification code."
+
+
+class VerifyOTPRequest(BaseModel):
+    email: str = Field(..., description="The email address used in /generate.")
+    otp: str = Field(
+        ...,
+        min_length=6,
+        max_length=6,
+        description="The 6-digit OTP from your email.",
+    )
+
+
+# ──────────────────────────────────────────────
+# Step 1 — Send OTP
+# ──────────────────────────────────────────────
+
 @router.post(
     "/generate",
-    response_model=GenerateKeyResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Self-serve API key generation",
+    response_model=OTPSentResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Step 1 — Request an API key (sends OTP)",
     description=(
-        "Any developer can hit this endpoint with their email to get an API key. "
-        "A Stripe customer is created automatically and linked to the key for "
-        "metered billing. No admin token required.\n\n"
-        "If the email already has an active key, the existing key prefix is "
-        "returned with instructions to contact support (the raw key is never "
-        "shown again after initial creation)."
+        "Validates the email, checks for existing keys, then sends a 6-digit "
+        "verification code to the email via Resend. The OTP expires in 10 "
+        "minutes. No key is created at this step — call /v1/keys/verify next."
     ),
     responses={
         400: {"description": "Invalid email format."},
         409: {"description": "Email already has an active API key."},
-        500: {"description": "Stripe or database error."},
+        500: {"description": "Email delivery or database error."},
     },
 )
-async def generate_key(payload: GenerateKeyRequest) -> GenerateKeyResponse:
+async def generate_key(payload: GenerateKeyRequest) -> OTPSentResponse:
     """
-    Self-serve key generation flow:
+    Step 1 of the key generation flow:
 
     1. Validate email format.
     2. Check if email already has an active key → 409 if so.
-    3. Create a Stripe customer with the email.
-    4. Generate an nyz_live_* key, hash it.
-    5. Store in Supabase with the Stripe customer ID.
-    6. Return the raw key (shown only once) + Stripe customer ID.
+    3. Generate a 6-digit OTP.
+    4. Store the OTP hash + expiry in the key_requests table.
+    5. Send the OTP via Resend.
+    6. Return {"status": "otp_sent"}.
     """
     email = payload.email.strip().lower()
 
@@ -91,6 +155,98 @@ async def generate_key(payload: GenerateKeyRequest) -> GenerateKeyResponse:
                 f"Email '{email}' already has an active API key "
                 f"(prefix: {existing['key_prefix']}). "
                 "If you lost your key, contact support for a rotation."
+            ),
+        )
+
+    # ── Generate OTP ──
+    otp = _generate_otp()
+    otp_hash = _hash_otp(otp)
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+
+    # ── Store in key_requests ──
+    try:
+        insert_key_request(email=email, otp_hash=otp_hash, expires_at=expires_at)
+    except Exception as exc:
+        logger.exception("Failed to store OTP request for %s", email)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create verification request.",
+        ) from exc
+
+    # ── Send email ──
+    try:
+        _send_otp_email(email, otp)
+        logger.info("OTP sent to %s", email)
+    except Exception as exc:
+        logger.exception("Failed to send OTP email to %s", email)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send verification email. Please try again.",
+        ) from exc
+
+    return OTPSentResponse()
+
+
+# ──────────────────────────────────────────────
+# Step 2 — Verify OTP & Issue Key
+# ──────────────────────────────────────────────
+
+@router.post(
+    "/verify",
+    response_model=GenerateKeyResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Step 2 — Verify OTP and get your API key",
+    description=(
+        "Submit the 6-digit OTP from your email along with the email address. "
+        "If valid and not expired, the API key is created immediately and "
+        "returned. The raw key is shown only once."
+    ),
+    responses={
+        400: {"description": "Invalid or expired OTP."},
+        409: {"description": "Email already has an active API key."},
+        500: {"description": "Stripe or database error."},
+    },
+)
+async def verify_otp(payload: VerifyOTPRequest) -> GenerateKeyResponse:
+    """
+    Step 2 of the key generation flow:
+
+    1. Look up the most recent unused, unexpired OTP for the email.
+    2. Verify the submitted OTP against the stored hash.
+    3. Mark the OTP as used.
+    4. Create a Stripe customer.
+    5. Generate the API key, hash it, store it.
+    6. Return the raw key (shown only once).
+    """
+    email = payload.email.strip().lower()
+    otp = payload.otp.strip()
+
+    # ── Find pending OTP ──
+    pending = find_pending_otp(email)
+    if pending is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No pending verification found for this email. Request a new code via /v1/keys/generate.",
+        )
+
+    # ── Verify OTP ──
+    if _hash_otp(otp) != pending["otp_hash"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please check and try again.",
+        )
+
+    # ── Mark as used ──
+    mark_otp_used(pending["id"])
+
+    # ── Double-check no key was created in the meantime ──
+    existing = find_key_by_email(email)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Email '{email}' already has an active API key "
+                f"(prefix: {existing['key_prefix']})."
             ),
         )
 

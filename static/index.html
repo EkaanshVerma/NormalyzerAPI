@@ -1611,15 +1611,21 @@
   <div class="cta-inner">
     <p class="section-label" style="text-align:center">Get started</p>
     <h2>Your first 10,000 calls<br><em>are on us.</em></h2>
-    <p class="section-sub" style="margin-bottom:0">Beta access — 10,000 free calls, no card required. Enter your email and get an API key in seconds.</p>
-    <div class="cta-actions">
+    <p class="section-sub" style="margin-bottom:0" id="cta-desc">Beta access — 10,000 free calls, no card required. Enter your email and we'll send a verification code.</p>
+    <!-- Step 1: Email -->
+    <div class="cta-actions" id="step-email">
       <input type="email" id="email-input" placeholder="you@company.dev" style="padding:11px 16px;border:1px solid rgba(10,10,9,0.2);border-radius:4px;font-size:14px;font-family:'DM Sans',sans-serif;background:white;width:260px;outline:none;"/>
-      <button class="btn-primary" onclick="handleSignup()" id="signup-btn">Generate key →</button>
+      <button class="btn-primary" onclick="handleSignup()" id="signup-btn">Send code →</button>
+    </div>
+    <!-- Step 2: OTP -->
+    <div class="cta-actions" id="step-otp" style="display:none">
+      <input type="text" id="otp-input" placeholder="6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]*" style="padding:11px 16px;border:1px solid rgba(10,10,9,0.2);border-radius:4px;font-size:14px;font-family:'DM Mono',monospace;background:white;width:160px;outline:none;text-align:center;letter-spacing:4px;"/>
+      <button class="btn-primary" onclick="handleVerify()" id="verify-btn">Verify & get key →</button>
     </div>
     <div class="key-preview" id="key-display" style="display:none">
       Your key: <span id="key-value"></span> — save this, it won't be shown again
     </div>
-    <p style="margin-top:1rem;font-size:12px;color:var(--mid)">Or hit <code style="font-family:'DM Mono',monospace;font-size:11px">POST /v1/keys/generate</code> directly with your email.</p>
+    <p style="margin-top:1rem;font-size:12px;color:var(--mid)" id="cta-hint">Or hit <code style="font-family:'DM Mono',monospace;font-size:11px">POST /v1/keys/generate</code> directly with your email.</p>
   </div>
 </div>
 
@@ -1694,6 +1700,8 @@
 </footer>
 
 <script>
+let _signupEmail = '';
+
 async function handleSignup() {
   const email = document.getElementById('email-input').value.trim();
   const btn = document.getElementById('signup-btn');
@@ -1703,7 +1711,7 @@ async function handleSignup() {
     return;
   }
 
-  btn.textContent = 'Generating...';
+  btn.textContent = 'Sending code...';
   btn.style.opacity = '0.7';
   btn.disabled = true;
 
@@ -1715,15 +1723,16 @@ async function handleSignup() {
     });
     const data = await res.json();
 
-    if (res.ok && data.api_key) {
-      document.getElementById('key-value').textContent = data.api_key;
-      document.getElementById('key-display').style.display = 'inline-flex';
-      btn.textContent = 'Key generated ✓';
-      btn.style.background = '#2d6a4f';
-      btn.style.borderColor = '#2d6a4f';
+    if (res.ok && data.status === 'otp_sent') {
+      _signupEmail = email;
+      document.getElementById('step-email').style.display = 'none';
+      document.getElementById('step-otp').style.display = 'flex';
+      document.getElementById('cta-desc').textContent = 'We sent a 6-digit code to ' + email + '. Enter it below.';
+      document.getElementById('cta-hint').innerHTML = 'Code expires in 10 minutes. <a href="#" onclick="resetSignup();return false;" style="color:var(--accent);">Use a different email</a>';
+      document.getElementById('otp-input').focus();
     } else {
       const msg = data.detail || 'Something went wrong';
-      btn.textContent = msg.includes('already exists') ? 'Key exists for this email' : 'Error — try again';
+      btn.textContent = msg.includes('already has') ? 'Key exists for this email' : 'Error — try again';
       btn.style.background = '#c8502a';
       btn.style.borderColor = '#c8502a';
       btn.disabled = false;
@@ -1735,8 +1744,70 @@ async function handleSignup() {
   }
 }
 
+async function handleVerify() {
+  const otp = document.getElementById('otp-input').value.trim();
+  const btn = document.getElementById('verify-btn');
+
+  if (!otp || otp.length !== 6) {
+    document.getElementById('otp-input').style.borderColor = '#c8502a';
+    return;
+  }
+
+  btn.textContent = 'Verifying...';
+  btn.style.opacity = '0.7';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/v1/keys/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: _signupEmail, otp })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.api_key) {
+      document.getElementById('step-otp').style.display = 'none';
+      document.getElementById('key-value').textContent = data.api_key;
+      document.getElementById('key-display').style.display = 'inline-flex';
+      document.getElementById('cta-desc').textContent = 'Your API key is ready. Save it — it won\'t be shown again.';
+      document.getElementById('cta-hint').innerHTML = 'Read the <a href="/docs" style="color:var(--accent);">docs</a> to start normalizing transactions.';
+    } else {
+      const msg = data.detail || 'Invalid code';
+      btn.textContent = msg.includes('expired') || msg.includes('No pending') ? 'Code expired — resend' : 'Invalid code — retry';
+      btn.style.background = '#c8502a';
+      btn.style.borderColor = '#c8502a';
+      btn.disabled = false;
+    }
+  } catch (e) {
+    btn.textContent = 'Error — check connection';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+  }
+}
+
+function resetSignup() {
+  _signupEmail = '';
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('step-email').style.display = 'flex';
+  document.getElementById('cta-desc').textContent = 'Beta access — 10,000 free calls, no card required. Enter your email and we\'ll send a verification code.';
+  document.getElementById('cta-hint').innerHTML = 'Or hit <code style="font-family:\'DM Mono\',monospace;font-size:11px">POST /v1/keys/generate</code> directly with your email.';
+  const btn = document.getElementById('signup-btn');
+  btn.textContent = 'Send code →';
+  btn.style.opacity = '1';
+  btn.style.background = '';
+  btn.style.borderColor = '';
+  btn.disabled = false;
+  document.getElementById('email-input').value = '';
+  document.getElementById('otp-input').value = '';
+}
+
 document.getElementById('email-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') handleSignup();
+  this.style.borderColor = '';
+});
+
+document.getElementById('otp-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleVerify();
   this.style.borderColor = '';
 });
 

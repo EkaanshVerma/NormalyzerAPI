@@ -36,6 +36,17 @@ Required Supabase tables (create via SQL editor or migrations):
         unmatched_count     INTEGER     NOT NULL DEFAULT 0,
         created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+
+    CREATE TABLE key_requests (
+        id                  BIGSERIAL PRIMARY KEY,
+        email               TEXT        NOT NULL,
+        otp_hash            TEXT        NOT NULL,
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+        expires_at          TIMESTAMPTZ NOT NULL,
+        used                BOOLEAN     NOT NULL DEFAULT FALSE
+    );
+
+    CREATE INDEX idx_key_requests_email ON key_requests(email);
 """
 
 import logging
@@ -244,3 +255,63 @@ def mark_paid_by_customer_id(stripe_customer_id: str) -> int:
             stripe_customer_id, exc,
         )
         return 0
+
+
+# ──────────────────────────────────────────────
+# OTP / Key Request Operations
+# ──────────────────────────────────────────────
+
+def insert_key_request(email: str, otp_hash: str, expires_at: str) -> dict:
+    """
+    Insert a new OTP key request row.
+
+    Args:
+        email:      Lowercase email address.
+        otp_hash:   SHA-256 hash of the 6-digit OTP.
+        expires_at: ISO-8601 timestamp (10 minutes from now).
+
+    Returns:
+        The created row dict.
+    """
+    client = get_supabase()
+    result = (
+        client.table("key_requests")
+        .insert({
+            "email": email,
+            "otp_hash": otp_hash,
+            "expires_at": expires_at,
+        })
+        .execute()
+    )
+    return result.data[0] if result.data else {}
+
+
+def find_pending_otp(email: str) -> Optional[dict]:
+    """
+    Find the most recent unused, unexpired OTP request for an email.
+
+    Returns the row dict or None if no valid request exists.
+    """
+    client = get_supabase()
+    result = (
+        client.table("key_requests")
+        .select("*")
+        .eq("email", email)
+        .eq("used", False)
+        .gte("expires_at", "now()")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    return result.data[0] if result.data else None
+
+
+def mark_otp_used(request_id: int) -> None:
+    """Mark an OTP key request as used after successful verification."""
+    try:
+        client = get_supabase()
+        client.table("key_requests").update(
+            {"used": True}
+        ).eq("id", request_id).execute()
+    except Exception as exc:
+        logger.error("Failed to mark OTP request %d as used: %s", request_id, exc)
