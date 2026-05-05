@@ -14,7 +14,8 @@ import re
 import secrets
 from datetime import datetime, timedelta, timezone
 
-import resend
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -64,29 +65,26 @@ def _hash_otp(otp: str) -> str:
 
 
 def _send_otp_email(email: str, otp: str) -> None:
-    """Send the 6-digit verification code via Resend."""
-    settings = get_settings()
-    resend.api_key = settings.RESEND_API_KEY
-    resend.Emails.send({
-        "from": "Normalyze <onboarding@resend.dev>",
-        "to": [email],
-        "subject": "Your Normalyze verification code",
-        "html": (
-            '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;">'
-            '<h2 style="margin-bottom:0.5rem;">Your verification code</h2>'
-            '<p style="color:#666;margin-bottom:1.5rem;">'
-            "Enter this code on the Normalyze site to generate your API key."
-            "</p>"
-            f'<div style="font-size:36px;font-weight:700;letter-spacing:8px;'
-            f'text-align:center;background:#f5f5f0;border-radius:8px;'
-            f'padding:1.5rem;margin-bottom:1.5rem;">{otp}</div>'
-            '<p style="color:#999;font-size:13px;">'
-            "This code expires in 10 minutes. If you didn't request this, "
-            "you can safely ignore this email."
-            "</p>"
-            "</div>"
+    """Send the 6-digit verification code via Brevo."""
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = get_settings().BREVO_API_KEY
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": email}],
+        sender={"name": "Normalyze", "email": "onboarding@normalyze.dev"},
+        subject="Your Normalyze verification code",
+        html_content=(
+            f"<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;'>"
+            f"<h2>Your verification code</h2>"
+            f"<p style='color:#666;'>Enter this code to generate your API key.</p>"
+            f"<div style='font-size:36px;font-weight:700;letter-spacing:8px;"
+            f"text-align:center;background:#f5f5f0;border-radius:8px;"
+            f"padding:1.5rem;margin-bottom:1.5rem;'>{otp}</div>"
+            f"<p style='color:#999;font-size:13px;'>Expires in 10 minutes.</p>"
+            f"</div>"
         ),
-    })
+    )
+    api_instance.send_transac_email(send_smtp_email)
 
 
 # ── Request / Response Models ──

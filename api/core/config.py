@@ -54,8 +54,8 @@ class Settings(BaseSettings):
     # requiring a paid Stripe subscription. Set via env to adjust without deploy.
     FREE_TIER_CALLS: int = 10000
 
-    # Resend — transactional email for contact form submissions.
-    RESEND_API_KEY: str = ""
+    # Brevo — transactional email for OTP verification and contact form.
+    BREVO_API_KEY: str = ""
     CONTACT_EMAIL: str = "ekaansh.vermagroup@gmail.com"
 
     class Config:
