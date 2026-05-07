@@ -49,13 +49,12 @@ settings = get_settings()
 
 app = FastAPI(
     title=settings.APP_NAME,
-    version=settings.APP_VERSION,
+    version="1.0.0",
     description=(
         "A machine-to-machine API that normalises raw financial transaction "
         "strings into strictly typed, categorised JSON. Designed for AI agents "
         "and fintech applications consuming Indian banking data.\n\n"
-        "**v2.1** — Supabase backend, self-serve key generation with "
-        "Stripe customer auto-creation, Gemini LLM fallback, CSV uploads, "
+        "**v1.0.0** — Self-serve key generation, Gemini LLM fallback, CSV uploads, "
         "and usage auditing."
     ),
     docs_url="/docs",

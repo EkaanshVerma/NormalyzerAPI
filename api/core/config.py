@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     """
 
     APP_NAME: str = "Normalyze"
-    APP_VERSION: str = "2.1.0"
+    APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
 
     # Supabase — replaces SQLite for serverless compatibility on Vercel.

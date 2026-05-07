@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-    <meta name="google-site-verification" content="RWBVKf9nn4y6TXTF4sTpWx8Yoen7e1CuOyFUbCP12OA" />
-    <meta name="google-site-verification" content="RWBVKf9nn4y6TXTF4sTpWx8Yoen7e1CuOyFUbCP12OA" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Normalyze — Financial Data API</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1412,7 +1410,7 @@
     <div class="how-cell">
       <p class="how-number">02 —</p>
       <p class="how-title">Send your strings</p>
-      <p class="how-desc">Pass a batch of raw transaction strings — from Razorpay exports, RBI AA feeds, legacy cores, anywhere. Up to 500 per request. CSV upload also supported.</p>
+      <p class="how-desc">Pass a batch of raw transaction strings — from Razorpay exports, RBI AA feeds, legacy cores, anywhere. Up to 5,000 rows via CSV upload.</p>
       <span class="how-arrow">POST /v1/normalize →</span>
     </div>
     <div class="how-cell">
@@ -1479,12 +1477,6 @@
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M9 10h10M9 14h7M9 18h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             <p>output appears here</p>
           </div>
-        </div>
-        <div class="demo-metrics" id="demo-metrics" style="display:none">
-          <div class="demo-metric">merchant <span class="demo-metric-val" id="dm-merchant">—</span></div>
-          <div class="demo-metric">category <span class="demo-metric-val" id="dm-category">—</span></div>
-          <div class="demo-metric">confidence <span class="demo-metric-val" id="dm-confidence">—</span></div>
-          <div class="demo-metric">path <span class="demo-metric-val" id="dm-path">—</span></div>
         </div>
       </div>
     </div>
@@ -1559,7 +1551,7 @@
     <div class="feature-card">
       <div class="feature-icon">📁</div>
       <p class="feature-title">CSV batch upload</p>
-      <p class="feature-desc">Drop a bank statement CSV directly. Auto-detects Indian bank column formats including Narration, Description, and Particulars. Returns the same normalized JSON as the standard endpoint. Up to 500 rows per upload.</p>
+      <p class="feature-desc">Drop a bank statement CSV directly. Auto-detects Indian bank column formats including Narration, Description, and Particulars. Returns the same normalized JSON as the standard endpoint. Up to 5,000 rows per upload.</p>
       <span class="feature-tag">POST /v1/normalize/csv</span>
     </div>
     <div class="feature-card">
@@ -1600,7 +1592,7 @@
         <li>Everything in free</li>
         <li>Unlimited volume</li>
         <li>Priority support</li>
-        <li>Usage dashboard</li>
+        <li>Usage dashboard (coming soon)</li>
         <li>1,000 calls ≈ $5/mo</li>
       </ul>
       <a href="#get-key" class="pricing-cta pricing-cta-solid">Start now</a>
@@ -1915,14 +1907,12 @@ async function runDemo() {
   const dot = document.getElementById('demo-dot');
   const statusText = document.getElementById('demo-status-text');
   const output = document.getElementById('demo-output');
-  const metrics = document.getElementById('demo-metrics');
 
   btn.disabled = true;
   btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.5" stroke-dasharray="6 6" style="animation:spin 0.8s linear infinite"/></svg> Running...';
   dot.className = 'demo-status-dot loading';
   statusText.textContent = 'processing...';
   output.innerHTML = '<div class="demo-output-placeholder"><p>normalizing...</p></div>';
-  metrics.style.display = 'none';
 
   const t0 = Date.now();
 
@@ -1948,14 +1938,6 @@ async function runDemo() {
 
     const data = await res.json();
     output.innerHTML = syntaxHighlight(data);
-
-    // Update metrics bar
-    const d = data.data || data;
-    document.getElementById('dm-merchant').textContent = d.clean_merchant || '—';
-    document.getElementById('dm-category').textContent = d.category || '—';
-    document.getElementById('dm-confidence').textContent = d.explain?.confidence || '—';
-    document.getElementById('dm-path').textContent = d.explain?.path || '—';
-    metrics.style.display = 'flex';
 
     dot.className = 'demo-status-dot done';
     statusText.textContent = elapsed + 'ms';
