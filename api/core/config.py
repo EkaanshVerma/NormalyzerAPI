@@ -57,6 +57,7 @@ class Settings(BaseSettings):
     # Brevo — transactional email for OTP verification and contact form.
     BREVO_API_KEY: str = ""
     CONTACT_EMAIL: str = "ekaansh.vermagroup@gmail.com"
+    SENDER_EMAIL: str = "ekaansh.vermagroup@gmail.com"
 
     class Config:
         env_file = ".env"

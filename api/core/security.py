@@ -77,7 +77,14 @@ async def verify_api_token_no_quota(
         )
 
     key_hash_val = hash_key(raw_key)
-    key_record = find_active_key_by_hash(key_hash_val)
+    try:
+        key_record = find_active_key_by_hash(key_hash_val)
+    except Exception as exc:
+        logger.exception("Database error while looking up API key: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Database connection error while verifying API key. Please try again shortly.",
+        ) from exc
 
     if key_record is None:
         raise HTTPException(

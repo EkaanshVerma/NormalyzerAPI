@@ -72,7 +72,7 @@ async def submit_contact(payload: ContactRequest) -> ContactResponse:
         
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=[{"email": settings.CONTACT_EMAIL}],
-            sender={"name": "Normalyze", "email": "onboarding@normalyze.dev"},
+            sender={"name": "Normalyze", "email": settings.SENDER_EMAIL or "ekaansh.vermagroup@gmail.com"},
             subject=f"New contact from {payload.name} — Normalyze",
             html_content=(
                 f"<h2>New Contact Submission</h2>"

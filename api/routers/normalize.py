@@ -9,6 +9,7 @@ Provides:
 
 import io
 import logging
+import re
 from typing import List
 
 import pandas as pd
@@ -33,13 +34,19 @@ router = APIRouter(prefix="/v1/normalize", tags=["Normalization"])
 
 # Column names commonly used in Indian bank statement CSVs.
 # We auto-detect by checking which one exists (case-insensitive).
-# Supports standard Indian bank headers and fallback/generic column names.
+# Supports standard Indian bank headers, composites, and fallback/generic column names.
 _CANDIDATE_COLUMNS = [
+    # Primary description headers (highest priority)
     "description", "narration", "transaction_description",
     "transaction description", "particulars", "details",
     "remark", "remarks", "transaction_remarks",
     "transaction remarks", "txn_description", "txn description",
     "transaction_details", "transaction details",
+    "transaction particulars", "transaction_particulars",
+    "narration / description", "narration/description",
+    "particulars / narration", "particulars/narration",
+    "trans remarks", "trans description", "tran remarks", "tran description",
+    # Developer/generic fallbacks (lowest priority)
     "raw", "raw_string", "raw string", "transaction", "transactions",
 ]
 
@@ -252,13 +259,29 @@ async def normalize_csv(
         )
 
     # ── Auto-detect the transaction description column ──
-    col_lower_map = {col.lower().strip(): col for col in df.columns}
+    # Clean header mapping (strips surrounding whitespace and punctuation)
+    clean_col_map = {col.lower().strip().strip(".:-[]()_"): col for col in df.columns}
     detected_col = None
 
+    # Pass 1: exact candidate check in priority order
     for candidate in _CANDIDATE_COLUMNS:
-        if candidate in col_lower_map:
-            detected_col = col_lower_map[candidate]
+        if candidate in clean_col_map:
+            detected_col = clean_col_map[candidate]
             break
+
+    # Pass 2: token match for composite headers while excluding metadata columns (date, id, amount, etc.)
+    if detected_col is None:
+        METADATA_TOKENS = {
+            'date', 'time', 'id', 'no', 'number', 'num', 'type', 'amt', 'amount',
+            'bal', 'balance', 'code', 'status', 'mode', 'sol', 'chq', 'cheque', 'ref',
+        }
+        KEYWORD_TOKENS = {'narration', 'particulars', 'remarks', 'remark', 'description', 'details'}
+
+        for col in df.columns:
+            tokens = set(re.findall(r'[a-zA-Z]+', col.lower()))
+            if tokens & KEYWORD_TOKENS and not (tokens & METADATA_TOKENS):
+                detected_col = col
+                break
 
     if detected_col is None:
         raise HTTPException(

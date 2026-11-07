@@ -241,6 +241,23 @@ class GenerateKeyResponse(BaseModel):
     stripe_customer_id: str = Field("", description="The Stripe Customer ID created for billing.")
 
 
+class OTPSentResponse(BaseModel):
+    """Response returned when an OTP verification code has been dispatched."""
+    status: str = "otp_sent"
+    message: str = "Check your email for a 6-digit verification code."
+
+
+class VerifyOTPRequest(BaseModel):
+    """Request body for submitting the 6-digit verification code."""
+    email: str = Field(..., description="The email address used in /generate or /recover.")
+    otp: str = Field(
+        ...,
+        min_length=6,
+        max_length=6,
+        description="The 6-digit OTP from your email.",
+    )
+
+
 class CreateKeyRequest(BaseModel):
     """Admin request body for generating a new API key (legacy/manual)."""
     label: str = Field(

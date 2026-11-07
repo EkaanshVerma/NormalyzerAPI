@@ -46,8 +46,10 @@ from api.models.schemas import (
     KeyInfo,
     KeyUsageResponse,
     ListKeysResponse,
+    OTPSentResponse,
     RecoverKeyRequest,
     RevokeKeyRequest,
+    VerifyOTPRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -72,12 +74,13 @@ def _hash_otp(otp: str) -> str:
 
 def _send_otp_email(email: str, otp: str) -> None:
     """Send the 6-digit verification code via Brevo."""
+    settings = get_settings()
     configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = get_settings().BREVO_API_KEY
+    configuration.api_key['api-key'] = settings.BREVO_API_KEY
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=[{"email": email}],
-        sender={"name": "Normalyze", "email": "onboarding@normalyze.dev"},
+        sender={"name": "Normalyze", "email": settings.SENDER_EMAIL or "ekaansh.vermagroup@gmail.com"},
         subject="Your Normalyze verification code",
         html_content=(
             f"<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;'>"
@@ -95,12 +98,13 @@ def _send_otp_email(email: str, otp: str) -> None:
 
 def _send_recovery_email(email: str, otp: str) -> None:
     """Send the 6-digit recovery code via Brevo."""
+    settings = get_settings()
     configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = get_settings().BREVO_API_KEY
+    configuration.api_key['api-key'] = settings.BREVO_API_KEY
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=[{"email": email}],
-        sender={"name": "Normalyze", "email": "onboarding@normalyze.dev"},
+        sender={"name": "Normalyze", "email": settings.SENDER_EMAIL or "ekaansh.vermagroup@gmail.com"},
         subject="Your Normalyze key recovery code",
         html_content=(
             f"<div style='font-family:sans-serif;max-width:480px;margin:0 auto;padding:2rem;'>"
@@ -115,22 +119,6 @@ def _send_recovery_email(email: str, otp: str) -> None:
     )
     api_instance.send_transac_email(send_smtp_email)
 
-
-# ── Request / Response Models ──
-
-class OTPSentResponse(BaseModel):
-    status: str = "otp_sent"
-    message: str = "Check your email for a 6-digit verification code."
-
-
-class VerifyOTPRequest(BaseModel):
-    email: str = Field(..., description="The email address used in /generate.")
-    otp: str = Field(
-        ...,
-        min_length=6,
-        max_length=6,
-        description="The 6-digit OTP from your email.",
-    )
 
 
 # ──────────────────────────────────────────────
