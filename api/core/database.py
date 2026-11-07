@@ -89,6 +89,7 @@ def insert_api_key(
     label: str,
     email: str,
     stripe_customer_id: str,
+    is_paid: bool = False,
 ) -> dict:
     """Insert a new API key row and return the created record."""
     client = get_supabase()
@@ -100,6 +101,7 @@ def insert_api_key(
             "label": label,
             "email": email,
             "stripe_customer_id": stripe_customer_id,
+            "is_paid": is_paid,
         })
         .execute()
     )
@@ -169,6 +171,23 @@ def revoke_key_by_prefix(key_prefix: str) -> int:
         client.table("api_keys")
         .update({"is_active": False})
         .eq("key_prefix", key_prefix)
+        .eq("is_active", True)
+        .execute()
+    )
+    return len(result.data) if result.data else 0
+
+
+def revoke_key_by_email(email: str) -> int:
+    """
+    Soft-revoke all active keys for a given email address.
+
+    Returns the number of rows affected.
+    """
+    client = get_supabase()
+    result = (
+        client.table("api_keys")
+        .update({"is_active": False})
+        .eq("email", email)
         .eq("is_active", True)
         .execute()
     )

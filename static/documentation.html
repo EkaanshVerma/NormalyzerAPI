@@ -452,7 +452,8 @@
       <a href="#normalize-single" class="sidebar-link"><span class="sidebar-link-dot"></span>POST /v1/normalize/transaction</a>
       <a href="#normalize-csv" class="sidebar-link"><span class="sidebar-link-dot"></span>POST /v1/normalize/csv</a>
       <a href="#keys-generate" class="sidebar-link"><span class="sidebar-link-dot"></span>POST /v1/keys/generate</a>
-      <a href="#keys-usage" class="sidebar-link"><span class="sidebar-link-dot"></span>GET /v1/keys</a>
+      <a href="#keys-usage" class="sidebar-link"><span class="sidebar-link-dot"></span>GET /v1/keys/usage</a>
+      <a href="#keys-recover" class="sidebar-link"><span class="sidebar-link-dot"></span>POST /v1/keys/recover</a>
       <a href="#keys-revoke" class="sidebar-link"><span class="sidebar-link-dot"></span>POST /v1/keys/revoke</a>
     </div>
     <div class="sidebar-section">
@@ -630,11 +631,11 @@
       <div class="code-block">
         <div class="code-header"><span class="code-lang">json</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
         <div class="code-body">{
-  <span class="p">"transaction"</span>: <span class="s">"UPI/ZOMATO/98123456/FOOD"</span>
+  <span class="p">"raw_string"</span>: <span class="s">"UPI/ZOMATO/98123456/FOOD"</span>
 }</div>
       </div>
 
-      <p>Returns a single normalized transaction object (not wrapped in an array).</p>
+      <p>Returns a single normalized transaction response in the envelope: <code>{"status": "success", "data": {...}}</code>.</p>
     </div>
 
     <div class="divider"></div>
@@ -643,18 +644,9 @@
     <div class="doc-section" id="normalize-csv">
       <h2>Normalize CSV</h2>
       <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/normalize/csv</span></div>
-      <p>Upload a CSV file directly. Auto-detects Indian bank column formats including <code>Narration</code>, <code>Description</code>, and <code>Particulars</code> — rename to <code>raw</code> if auto-detection fails.</p>
+      <p>Upload a CSV bank statement directly. Auto-detects Indian bank column formats including <code>Narration</code>, <code>Description</code>, <code>Particulars</code>, <code>Remarks</code>, <code>Details</code>, and generic fallback columns <code>raw</code> or <code>raw_string</code>.</p>
 
-      <h3>Required CSV columns</h3>
-      <table class="field-table">
-        <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>raw</td><td>Yes</td><td>Raw transaction string</td></tr>
-          <tr><td>id</td><td>No</td><td>Your transaction ID, echoed back</td></tr>
-          <tr><td>amount</td><td>No</td><td>Numeric amount</td></tr>
-          <tr><td>timestamp</td><td>No</td><td>Date/time string in any common format</td></tr>
-        </tbody>
-      </table>
+      <p>Only a transaction description column is required. Up to 5,000 rows per file (5 MB max).</p>
 
       <div class="code-block">
         <div class="code-header"><span class="code-lang">curl</span><button class="code-copy" onclick="copyCode(this)">copy</button></div>
@@ -670,17 +662,27 @@
     <div class="doc-section" id="keys-generate">
       <h2>Generate API key</h2>
       <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/keys/generate</span></div>
-      <p>Self-serve key generation. No auth required. The raw key is returned once and cannot be retrieved again.</p>
+      <p>Self-serve key generation step 1. Sends a 6-digit OTP to the developer's email. Call <code>POST /v1/keys/verify</code> with the OTP to receive your key.</p>
 
       <div class="code-block">
-        <div class="code-header"><span class="code-lang">json</span></div>
-        <div class="code-body">{
-  <span class="p">"email"</span>: <span class="s">"you@company.dev"</span>
-}</div>
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X POST https://normalyzerapi.vercel.app/v1/keys/generate \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"email": "you@company.dev"}'</span></div>
       </div>
 
       <div class="callout">
-        <p>One key per email address. If a key already exists for your email, revoke it first before generating a new one. Returns <code>409</code> on duplicate.</p>
+        <p>One active key per email address. If an active key already exists, returns <code>409 Conflict</code>. Use <code>POST /v1/keys/recover</code> to rotate a lost key.</p>
+      </div>
+
+      <h3 style="margin-top:1.5rem">Verify OTP &amp; Issue Key</h3>
+      <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/keys/verify</span></div>
+      <p>Submit the 6-digit OTP code received in your email to get your raw API key.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X POST https://normalyzerapi.vercel.app/v1/keys/verify \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"email": "you@company.dev", "otp": "123456"}'</span></div>
       </div>
     </div>
 
@@ -688,24 +690,68 @@
 
     <!-- KEY USAGE -->
     <div class="doc-section" id="keys-usage">
-      <h2>Get key usage</h2>
-      <div class="endpoint"><span class="method">GET</span><span class="path-text">/v1/keys?email=you@company.dev</span></div>
-      <p>Returns usage stats for your API key — total calls, total transactions processed, and last used timestamp.</p>
+      <h2>Get key usage &amp; quota</h2>
+      <div class="endpoint"><span class="method">GET</span><span class="path-text">/v1/keys/usage</span></div>
+      <p>Returns transaction usage stats and remaining quota for your authenticated Bearer key.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X GET https://normalyzerapi.vercel.app/v1/keys/usage \
+  -H <span class="s">"Authorization: Bearer nyz_live_your_key"</span></div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">response</span></div>
+        <div class="code-body">{
+  <span class="p">"status"</span>: <span class="s">"success"</span>,
+  <span class="p">"key_prefix"</span>: <span class="s">"nyz_live_abc12"</span>,
+  <span class="p">"calls_used"</span>: <span class="n">142</span>,
+  <span class="p">"calls_remaining"</span>: <span class="n">9858</span>,
+  <span class="p">"tier"</span>: <span class="s">"free"</span>,
+  <span class="p">"limit"</span>: <span class="n">10000</span>
+}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- KEY RECOVER -->
+    <div class="doc-section" id="keys-recover">
+      <h2>Recover / rotate API key</h2>
+      <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/keys/recover</span></div>
+      <p>If you lost your API key, send your email to receive a 6-digit recovery code. Then submit the code to rotate your key (deactivates the previous key and issues a new one).</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X POST https://normalyzerapi.vercel.app/v1/keys/recover \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"email": "you@company.dev"}'</span></div>
+      </div>
+
+      <h3 style="margin-top:1.5rem">Verify recovery &amp; receive new key</h3>
+      <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/keys/recover/verify</span></div>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X POST https://normalyzerapi.vercel.app/v1/keys/recover/verify \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"email": "you@company.dev", "otp": "123456"}'</span></div>
+      </div>
     </div>
 
     <div class="divider"></div>
 
     <!-- KEY REVOKE -->
     <div class="doc-section" id="keys-revoke">
-      <h2>Revoke API key</h2>
+      <h2>Revoke API key (admin)</h2>
       <div class="endpoint"><span class="method">POST</span><span class="path-text">/v1/keys/revoke</span></div>
-      <p>Immediately deactivates the key associated with your email. Use this if your key has been exposed.</p>
+      <p>Soft-deletes an API key by prefix. Requires the master admin token.</p>
 
       <div class="code-block">
-        <div class="code-header"><span class="code-lang">json</span></div>
-        <div class="code-body">{
-  <span class="p">"email"</span>: <span class="s">"you@company.dev"</span>
-}</div>
+        <div class="code-header"><span class="code-lang">curl</span></div>
+        <div class="code-body"><span class="kw">curl</span> -X POST https://normalyzerapi.vercel.app/v1/keys/revoke \
+  -H <span class="s">"Authorization: Bearer admin-master-token"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{"key_prefix": "nyz_live_abc12"}'</span></div>
       </div>
     </div>
 

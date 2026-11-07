@@ -33,12 +33,14 @@ router = APIRouter(prefix="/v1/normalize", tags=["Normalization"])
 
 # Column names commonly used in Indian bank statement CSVs.
 # We auto-detect by checking which one exists (case-insensitive).
+# Supports standard Indian bank headers and fallback/generic column names.
 _CANDIDATE_COLUMNS = [
     "description", "narration", "transaction_description",
     "transaction description", "particulars", "details",
     "remark", "remarks", "transaction_remarks",
     "transaction remarks", "txn_description", "txn description",
     "transaction_details", "transaction details",
+    "raw", "raw_string", "raw string", "transaction", "transactions",
 ]
 
 

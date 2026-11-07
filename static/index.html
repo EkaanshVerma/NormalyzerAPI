@@ -1365,7 +1365,7 @@
         <div class="code-dots"><span></span><span></span><span></span></div>
         <span class="code-lang">curl</span>
       </div>
-      <div class="code-body"><span class="k">curl</span> -X POST https://api.normalyze.dev<span class="p">/v1/normalize</span> \<br>&nbsp;&nbsp;-H <span class="s">"Authorization: Bearer nyz_live_••••••••"</span> \<br>&nbsp;&nbsp;-H <span class="s">"Content-Type: application/json"</span> \<br>&nbsp;&nbsp;-d <span class="s">'{"transactions": [<br>&nbsp;&nbsp;&nbsp;&nbsp;{"id": "t1", "raw": "UPI/ZOMATO/98123456/FOOD",<br>&nbsp;&nbsp;&nbsp;&nbsp; "amount": 349, "timestamp": "2024-03-15 19:42"}<br>&nbsp;&nbsp;]}'</span></div>
+      <div class="code-body"><span class="k">curl</span> -X POST https://normalyzerapi.vercel.app<span class="p">/v1/normalize/transaction</span> \<br>&nbsp;&nbsp;-H <span class="s">"Authorization: Bearer nyz_live_••••••••"</span> \<br>&nbsp;&nbsp;-H <span class="s">"Content-Type: application/json"</span> \<br>&nbsp;&nbsp;-d <span class="s">'{"raw_string": "UPI/ZOMATO/98123456/FOOD"}'</span></div>
     </div>
 
     <div class="response-panel">
@@ -1375,20 +1375,25 @@
       </div>
       <div class="response-body">
 {<br>
-&nbsp;&nbsp;<span class="json-key">"processed"</span>: <span class="json-num">1</span>,<br>
-&nbsp;&nbsp;<span class="json-key">"results"</span>: [{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"merchant"</span>: <span class="json-str">"Zomato"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"category"</span>: <span class="json-str">"Food &amp; Beverage"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"transaction_type"</span>: <span class="json-str">"DEBIT"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"channel"</span>: <span class="json-str">"UPI"</span>,<br>
+&nbsp;&nbsp;<span class="json-key">"status"</span>: <span class="json-str">"success"</span>,<br>
+&nbsp;&nbsp;<span class="json-key">"data"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"raw_string"</span>: <span class="json-str">"UPI/ZOMATO/98123456/FOOD"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"clean_merchant"</span>: <span class="json-str">"Zomato"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"category"</span>: <span class="json-str">"Food and Beverage"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"transaction_type"</span>: <span class="json-str">"unknown"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"channel"</span>: <span class="json-str">"upi"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"normalized_timestamp"</span>: <span class="json-null">null</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"ruleset_version"</span>: <span class="json-str">"v1.0.0"</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"is_reversal"</span>: <span class="json-bool">false</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"normalized_timestamp"</span>: <span class="json-str">"2024-03-15T19:42:00"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"is_partial"</span>: <span class="json-bool">false</span>,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"explain"</span>: {<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"path"</span>: <span class="json-str">"keyword_match"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"rule"</span>: <span class="json-str">"zomato → Food &amp; Beverage"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"confidence"</span>: <span class="json-num">0.95</span> <span class="json-label">HIGH</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"rule"</span>: <span class="json-str">"zomato → Food and Beverage"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"model"</span>: <span class="json-null">null</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"confidence"</span>: <span class="json-num">0.95</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="json-key">"ruleset_version"</span>: <span class="json-str">"v1.0.0"</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;}]<br>
+&nbsp;&nbsp;}<br>
 }
       </div>
     </div>
@@ -1412,7 +1417,7 @@
       <p class="how-number">02 —</p>
       <p class="how-title">Send your strings</p>
       <p class="how-desc">Pass a batch of raw transaction strings — from Razorpay exports, RBI AA feeds, legacy cores, anywhere. Up to 5,000 rows via CSV upload.</p>
-      <span class="how-arrow">POST /v1/normalize →</span>
+      <span class="how-arrow">POST /v1/normalize/batch →</span>
     </div>
     <div class="how-cell">
       <p class="how-number">03 —</p>
@@ -1505,13 +1510,14 @@
     <div class="transform-box">
       <p class="transform-box-label">After — structured JSON</p>
       <div class="transform-clean">
-        <span class="field-key">merchant</span>: <span class="field-val">"Zomato"</span><br>
-        <span class="field-key">category</span>: <span class="field-val">"Food &amp; Beverage"</span><br>
-        <span class="field-key">channel</span>: <span class="field-val">"UPI"</span><br>
+        <span class="field-key">clean_merchant</span>: <span class="field-val">"Zomato"</span><br>
+        <span class="field-key">category</span>: <span class="field-val">"Food and Beverage"</span><br>
+        <span class="field-key">channel</span>: <span class="field-val">"upi"</span><br>
+        <span class="field-key">transaction_type</span>: <span class="field-val">"unknown"</span><br>
         <span class="field-key">is_reversal</span>: <span class="field-path">false</span><br>
         <span class="field-key">is_partial</span>: <span class="field-path">false</span><br>
-        <span class="field-key">confidence</span>: <span class="field-conf">0.95</span><br>
-        <span class="field-key">path</span>: <span class="field-val">"keyword_match"</span><br>
+        <span class="field-key">explain.confidence</span>: <span class="field-conf">0.95</span><br>
+        <span class="field-key">explain.path</span>: <span class="field-val">"keyword_match"</span><br>
         <span class="field-key">ruleset_version</span>: <span class="field-val">"v1.0.0"</span>
       </div>
     </div>
@@ -1696,6 +1702,7 @@
 
 <script>
 let _signupEmail = '';
+let _isRecovery = false;
 
 async function handleSignup() {
   const email = document.getElementById('email-input').value.trim();
@@ -1720,14 +1727,49 @@ async function handleSignup() {
 
     if (res.ok && data.status === 'otp_sent') {
       _signupEmail = email;
+      _isRecovery = false;
       document.getElementById('step-email').style.display = 'none';
       document.getElementById('step-otp').style.display = 'flex';
       document.getElementById('cta-desc').textContent = 'We sent a 6-digit code to ' + email + '. Enter it below.';
       document.getElementById('cta-hint').innerHTML = 'Code expires in 10 minutes. <a href="#" onclick="resetSignup();return false;" style="color:var(--accent);">Use a different email</a>';
       document.getElementById('otp-input').focus();
+    } else if (res.status === 409) {
+      _signupEmail = email;
+      btn.textContent = 'Rotate / Recover Key →';
+      btn.style.background = 'var(--accent)';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.opacity = '1';
+      btn.disabled = false;
+      btn.onclick = async function() {
+        btn.textContent = 'Sending code...';
+        btn.disabled = true;
+        try {
+          const recRes = await fetch('/v1/keys/recover', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+          });
+          const recData = await recRes.json();
+          if (recRes.ok) {
+            _isRecovery = true;
+            document.getElementById('step-email').style.display = 'none';
+            document.getElementById('step-otp').style.display = 'flex';
+            document.getElementById('cta-desc').textContent = 'Recovery code sent to ' + email + '. Enter it below to rotate your key.';
+            document.getElementById('cta-hint').innerHTML = 'Code expires in 10 minutes. <a href="#" onclick="resetSignup();return false;" style="color:var(--accent);">Cancel</a>';
+            document.getElementById('otp-input').focus();
+          } else {
+            btn.textContent = recData.detail || 'Recovery failed';
+            btn.disabled = false;
+          }
+        } catch(e) {
+          btn.textContent = 'Error — retry';
+          btn.disabled = false;
+        }
+      };
+      document.getElementById('cta-hint').innerHTML = 'Active key already exists. Click above to rotate your key, or use <code style="font-family:\'DM Mono\',monospace;font-size:11px">POST /v1/keys/recover</code>.';
     } else {
       const msg = data.detail || 'Something went wrong';
-      btn.textContent = msg.includes('already has') ? 'Key exists for this email' : 'Error — try again';
+      btn.textContent = 'Error — try again';
       btn.style.background = '#c8502a';
       btn.style.borderColor = '#c8502a';
       btn.disabled = false;
@@ -1753,7 +1795,8 @@ async function handleVerify() {
   btn.disabled = true;
 
   try {
-    const res = await fetch('/v1/keys/verify', {
+    const endpoint = _isRecovery ? '/v1/keys/recover/verify' : '/v1/keys/verify';
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: _signupEmail, otp })
@@ -1764,8 +1807,10 @@ async function handleVerify() {
       document.getElementById('step-otp').style.display = 'none';
       document.getElementById('key-value').textContent = data.api_key;
       document.getElementById('key-display').style.display = 'inline-flex';
-      document.getElementById('cta-desc').textContent = 'Your API key is ready. Save it — it won\'t be shown again.';
-      document.getElementById('cta-hint').innerHTML = 'Read the <a href="/docs" style="color:var(--accent);">docs</a> to start normalizing transactions.';
+      document.getElementById('cta-desc').textContent = _isRecovery
+        ? 'Your API key has been rotated and previous key deactivated. Save your new key.'
+        : 'Your API key is ready. Save it — it won\'t be shown again.';
+      document.getElementById('cta-hint').innerHTML = 'Read the <a href="/documentation" style="color:var(--accent);">docs</a> to start normalizing transactions.';
     } else {
       const msg = data.detail || 'Invalid code';
       btn.textContent = msg.includes('expired') || msg.includes('No pending') ? 'Code expired — resend' : 'Invalid code — retry';
@@ -1782,11 +1827,13 @@ async function handleVerify() {
 
 function resetSignup() {
   _signupEmail = '';
+  _isRecovery = false;
   document.getElementById('step-otp').style.display = 'none';
   document.getElementById('step-email').style.display = 'flex';
   document.getElementById('cta-desc').textContent = 'Beta access — 10,000 free calls, no card required. Enter your email and we\'ll send a verification code.';
   document.getElementById('cta-hint').innerHTML = 'Or hit <code style="font-family:\'DM Mono\',monospace;font-size:11px">POST /v1/keys/generate</code> directly with your email.';
   const btn = document.getElementById('signup-btn');
+  btn.onclick = handleSignup;
   btn.textContent = 'Send code →';
   btn.style.opacity = '1';
   btn.style.background = '';

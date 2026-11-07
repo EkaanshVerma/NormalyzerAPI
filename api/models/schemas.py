@@ -292,6 +292,27 @@ class ListKeysResponse(BaseModel):
     keys: List[KeyInfo]
 
 
+class KeyUsageResponse(BaseModel):
+    """Response returning key usage and remaining free tier quota."""
+    status: str = "success"
+    key_prefix: str = Field(..., description="The key prefix.")
+    calls_used: int = Field(..., description="Total transactions processed.")
+    calls_remaining: Optional[int] = Field(None, description="Remaining free-tier transactions, or null if paid.")
+    tier: str = Field(..., description="Subscription tier: 'free' or 'paid'.")
+    limit: Optional[int] = Field(None, description="Free tier limit (e.g. 10000), or null if paid.")
+
+
+class RecoverKeyRequest(BaseModel):
+    """Request body for initiating key recovery / rotation."""
+    email: str = Field(..., description="Registered email address for the API key to recover.")
+    otp: Optional[str] = Field(
+        None,
+        min_length=6,
+        max_length=6,
+        description="Optional 6-digit OTP verification code. If omitted, an OTP will be sent to your email.",
+    )
+
+
 
 # ──────────────────────────────────────────────
 # CSV Upload Model

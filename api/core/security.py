@@ -30,6 +30,7 @@ KEY_RANDOM_BYTES = 16  # 32 hex chars → total key length = 41
 _bearer_scheme = HTTPBearer(
     scheme_name="BearerAuth",
     description="Provide your API key (format: nyz_live_<hex>) as a Bearer token.",
+    auto_error=False,
 )
 
 
@@ -41,6 +42,54 @@ def generate_api_key() -> str:
 def hash_key(raw_key: str) -> str:
     """SHA-256 hash of the raw API key for storage."""
     return hashlib.sha256(raw_key.encode()).hexdigest()
+
+
+async def verify_api_token_no_quota(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
+) -> dict:
+    """
+    Validates the Bearer API key without enforcing the free-tier usage cap.
+
+    Used by /v1/keys/usage so developers can check their usage and remaining
+    allowance even when their free-tier calls are exhausted.
+
+    Returns:
+        A dict with the full api_keys row (id, stripe_customer_id, email, etc.).
+
+    Raises:
+        HTTPException 401: If the key is missing, malformed, or not in the database.
+    """
+    if credentials is None or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header. Expected 'Authorization: Bearer nyz_live_...'",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    raw_key = credentials.credentials
+
+    # Quick format check before hitting the DB.
+    if not raw_key.startswith(KEY_PREFIX):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key format. Keys must start with 'nyz_live_'.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    key_hash_val = hash_key(raw_key)
+    key_record = find_active_key_by_hash(key_hash_val)
+
+    if key_record is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or revoked API key.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Update last_used_at (fire-and-forget, non-critical).
+    touch_key_last_used(key_record["id"])
+
+    return key_record
 
 
 async def verify_api_token(
@@ -61,25 +110,7 @@ async def verify_api_token(
         HTTPException 401: If the key is missing, malformed, or not in the database.
         HTTPException 429: If the free-tier call limit has been exceeded.
     """
-    raw_key = credentials.credentials
-
-    # Quick format check before hitting the DB.
-    if not raw_key.startswith(KEY_PREFIX):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API key format. Keys must start with 'nyz_live_'.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    key_hash_val = hash_key(raw_key)
-    key_record = find_active_key_by_hash(key_hash_val)
-
-    if key_record is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or revoked API key.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    key_record = await verify_api_token_no_quota(credentials)
 
     # ── Free-tier usage enforcement ──
     # Only bypass the cap when is_paid is explicitly True (set via Stripe
@@ -102,14 +133,11 @@ async def verify_api_token(
                 ),
             )
 
-    # Update last_used_at (fire-and-forget, non-critical).
-    touch_key_last_used(key_record["id"])
-
     return key_record
 
 
 async def verify_admin_token(
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer_scheme),
     settings: Settings = Depends(get_settings),
 ) -> str:
     """
@@ -118,6 +146,12 @@ async def verify_admin_token(
 
     Returns the token string on success.
     """
+    if credentials is None or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     token = credentials.credentials
 
     if token != settings.MASTER_ADMIN_TOKEN:

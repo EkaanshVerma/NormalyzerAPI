@@ -373,7 +373,7 @@
   <!-- Response format -->
   <div class="format-box">
     <h3>Error response format</h3>
-    <div class="format-code"><span style="color:#89ddff">"detail"</span>: {<br>&nbsp;&nbsp;<span style="color:#89ddff">"error"</span>: <span style="color:#c3e88d">"error_code_slug"</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"message"</span>: <span style="color:#c3e88d">"Human-readable description."</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"docs"</span>: <span style="color:#c3e88d">"https://normalyze.dev/errors"</span><br>}</div>
+    <div class="format-code"><span style="color:#89ddff">"detail"</span>: {<br>&nbsp;&nbsp;<span style="color:#89ddff">"error"</span>: <span style="color:#c3e88d">"error_code_slug"</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"message"</span>: <span style="color:#c3e88d">"Human-readable description."</span>,<br>&nbsp;&nbsp;<span style="color:#89ddff">"docs"</span>: <span style="color:#c3e88d">"https://normalyzerapi.vercel.app/errors"</span><br>}</div>
   </div>
 
   <!-- 2xx -->
@@ -390,8 +390,8 @@
         <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="error-body">
-        <p class="error-desc">The batch was processed successfully. Check <code>uncategorized_count</code> in the response — a high number may indicate your transaction strings have unusual formatting.</p>
-        <div class="error-example">{ <span class="k">"processed"</span>: <span class="n">3</span>, <span class="k">"results"</span>: [...], <span class="k">"uncategorized_count"</span>: <span class="n">0</span> }</div>
+        <p class="error-desc">The request was processed successfully. Inspect the <code>data</code> array — items with <code>category: "Uncategorized"</code> or low <code>explain.confidence</code> indicate unusual transaction formatting.</p>
+        <div class="error-example">{ <span class="k">"status"</span>: <span class="s">"success"</span>, <span class="k">"count"</span>: <span class="n">3</span>, <span class="k">"data"</span>: [...] }</div>
       </div>
     </div>
 
@@ -403,7 +403,7 @@
       </div>
       <div class="error-body">
         <p class="error-desc">A new API key was created successfully. The raw key is returned once and cannot be retrieved again.</p>
-        <div class="error-example">{ <span class="k">"api_key"</span>: <span class="s">"nyz_live_..."</span>, <span class="k">"message"</span>: <span class="s">"Save your API key — it will not be shown again."</span> }</div>
+        <div class="error-example">{ <span class="k">"status"</span>: <span class="s">"created"</span>, <span class="k">"api_key"</span>: <span class="s">"nyz_live_..."</span>, <span class="k">"key_prefix"</span>: <span class="s">"nyz_live_abc12"</span>, <span class="k">"email"</span>: <span class="s">"user@example.com"</span> }</div>
         <p class="error-fix">Store the key immediately in a secrets manager or environment variable.</p>
       </div>
     </div>
@@ -423,9 +423,9 @@
         <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="error-body">
-        <p class="error-desc">The <code>x-api-key</code> header is missing, malformed, or the key has been revoked.</p>
-        <div class="error-example">{ <span class="k">"detail"</span>: { <span class="k">"error"</span>: <span class="s">"invalid_api_key"</span>, <span class="k">"message"</span>: <span class="s">"API key is missing, invalid, or has been revoked."</span> } }</div>
-        <p class="error-fix">Ensure you're sending the header <code>x-api-key: nyz_live_...</code> on every request. Keys starting with anything other than <code>nyz_live_</code> will always fail.</p>
+        <p class="error-desc">The <code>Authorization</code> header is missing, malformed, or the key has been revoked.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Invalid or revoked API key."</span> }</div>
+        <p class="error-fix">Ensure you're sending the header <code>Authorization: Bearer nyz_live_...</code> on every request. Keys starting with anything other than <code>nyz_live_</code> will always fail.</p>
       </div>
     </div>
 
@@ -436,9 +436,9 @@
         <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="error-body">
-        <p class="error-desc">An active API key already exists for the email address you provided. One key per email is allowed on the free tier.</p>
-        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"An active API key already exists for user@example.com. Revoke it first."</span> }</div>
-        <p class="error-fix">Call <code>POST /v1/keys/revoke</code> with your email first, then generate a new key. Or use the existing key — check <code>GET /v1/keys/usage</code> to retrieve your prefix.</p>
+        <p class="error-desc">An active API key already exists for the email address you provided. One active key per email is allowed on the free tier.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Email 'user@example.com' already has an active API key (prefix: nyz_live_abc12). If you lost your key, use POST /v1/keys/recover to rotate it."</span> }</div>
+        <p class="error-fix">If you lost your key, call <code>POST /v1/keys/recover</code> with your email to receive a recovery OTP, then submit the code to rotate and receive a new key. Or check your remaining quota with <code>GET /v1/keys/usage</code>.</p>
       </div>
     </div>
 
@@ -451,20 +451,20 @@
       <div class="error-body">
         <p class="error-desc">The request body failed Pydantic validation. Common causes: missing required fields, wrong types, empty <code>transactions</code> array, or exceeding the 500-transaction limit per batch.</p>
         <div class="error-example">{ <span class="k">"detail"</span>: [{ <span class="k">"loc"</span>: [<span class="s">"body"</span>, <span class="s">"transactions"</span>], <span class="k">"msg"</span>: <span class="s">"List should have at least 1 item"</span>, <span class="k">"type"</span>: <span class="s">"too_short"</span> }] }</div>
-        <p class="error-fix">Check the <code>loc</code> field to identify which field failed. Ensure <code>transactions</code> is a non-empty array with at most 500 items, and each item has a non-empty <code>raw</code> string.</p>
+        <p class="error-fix">Check the <code>loc</code> field to identify which field failed. For batch requests, ensure <code>transactions</code> is a non-empty array of raw strings (max 500 strings). For single requests, ensure <code>raw_string</code> is provided.</p>
       </div>
     </div>
 
     <div class="error-card" onclick="toggleCard(this)">
       <div class="error-card-header">
-        <span class="error-code">422</span>
-        <span class="error-title">Unprocessable Entity — CSV missing required column</span>
+        <span class="error-code">400</span>
+        <span class="error-title">Bad Request — CSV column auto-detection failed</span>
         <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="error-body">
-        <p class="error-desc">The uploaded CSV is missing a <code>raw</code> column. This is the only required column — <code>id</code>, <code>amount</code>, and <code>timestamp</code> are optional.</p>
-        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"CSV must contain a 'raw' column."</span> }</div>
-        <p class="error-fix">Ensure your CSV has a header row with at least a <code>raw</code> column. Indian bank exports often call it <code>Narration</code> or <code>Description</code> — rename it to <code>raw</code> before uploading.</p>
+        <p class="error-desc">The uploaded CSV does not contain a recognizable transaction description column. Auto-detection checks for standard Indian bank headers (such as <code>Narration</code>, <code>Description</code>, <code>Particulars</code>, <code>Remarks</code>) and fallback column <code>raw</code>.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Could not auto-detect a transaction description column. Found columns: ['id', 'amount']. Expected one of: ['description', 'narration', ...]."</span> }</div>
+        <p class="error-fix">Auto-detection is attempted first across common Indian bank column names. If auto-detection fails on an unrecognized format, rename your transaction description column to <code>raw</code> or <code>description</code> before uploading.</p>
       </div>
     </div>
 
@@ -475,9 +475,9 @@
         <svg class="error-chevron" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="error-body">
-        <p class="error-desc">Your free tier allowance of 500 transactions has been exhausted. This limit is lifetime, not monthly — it applies until you upgrade to a paid plan.</p>
-        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Free tier limit of 500 transactions exceeded (500 used). Upgrade to a paid plan to continue."</span> }</div>
-        <p class="error-fix">Upgrade via Stripe Checkout (link on the pricing page) to continue with unlimited metered usage at $0.005 per transaction.</p>
+        <p class="error-desc">Your free tier allowance of 10,000 transactions has been exhausted. This limit is lifetime, not monthly — it applies until you upgrade to a paid plan.</p>
+        <div class="error-example">{ <span class="k">"detail"</span>: <span class="s">"Free tier limit of 10000 transactions exceeded (10000 used). Upgrade to a paid plan to continue."</span> }</div>
+        <p class="error-fix">Upgrade via Stripe Checkout (link on the pricing page) to continue with unlimited metered usage at $0.005 per transaction. You can check your current count anytime via <code>GET /v1/keys/usage</code>.</p>
       </div>
     </div>
   </div>
